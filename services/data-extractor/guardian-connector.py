@@ -1,22 +1,10 @@
 from guardian_content import Content
 from bs4 import BeautifulSoup
-import os
-# create content
 from datetime import datetime
-
-# datetime object containing current date and time
-now = datetime.now()
- 
-print("now =", now)
-
-# dd/mm/YY H:M:S
-dt_string = now.strftime("%d-%m-%Y-%H-%M")
-
-dir_name = 'data-run-' + dt_string;
-
-print(dir_name)
-
-os.makedirs(dir_name)
+from article_loader import ArticleLoader
+import time
+import json
+from math import sqrt, floor, ceil
 
 apikey = "2837a5d9-315a-4dd7-a769-81b60c8be2f6"
 
@@ -49,28 +37,29 @@ def get_results(page=1, date_indent=None):
         if len(body) > 100:
             html_stripped_results.append({
                 'body': body,
-                'sectionId': res['sectionId'],
-                'headline': headline,
-                'webPublicationDate': res['webPublicationDate'],
+                'source_tag': res['sectionId'],
+                'title': headline,
+                'publish_date': res['webPublicationDate'],
                 'id': res['id']
             })
     
 
     return html_stripped_results
-import time
-import json
-from math import sqrt, floor, ceil
+
 
 page = 1
 virtual_page = page
 date_indent = None
-
 all_articles = []
 errors_in_a_row = 0
 max_pages = 800
-bundle_size = ceil(sqrt(max_pages))
+bundle_size = 1 ##ceil(sqrt(max_pages))
+reporting_bundle_size = 40
+loader = ArticleLoader()
 
-print('{:d} pages, each bundled into a JSON file containing {:d} each.'.format(max_pages, bundle_size))
+load_session_id = loader.create_load_session()
+
+last_time = None
 
 while(page < max_pages and errors_in_a_row < 5):
     try:  
@@ -81,18 +70,25 @@ while(page < max_pages and errors_in_a_row < 5):
         time.sleep(5)
         errors_in_a_row += 1
         virtual_page = 0
-        date_indent = datetime.strptime(all_articles[-1]['webPublicationDate'] , "%Y-%m-%dT%H:%M:%S%z").strftime('%Y-%m-%d')
+        date_indent = datetime.strptime(last_time, "%Y-%m-%dT%H:%M:%S%z").strftime('%Y-%m-%d')
         
+    if len(all_articles) > 0:
+        last_time = all_articles[-1]['publish_date']
+
+    
     if page % bundle_size == 0:
         to_write = {
             'results': all_articles  
         }
 
-        with open(dir_name + '/output_news_raw_{:d}.json'.format(int(page / bundle_size)), 'w', encoding='utf-8') as f:
-            json.dump(to_write, f, ensure_ascii=False, indent=4)
-        
+        loader.insert_articles(all_articles, load_session_id);
+
         all_articles = []
+
+
     page += 1
+    if page % reporting_bundle_size == 0:
+        print('{} articles downloaded!'.format(str(200 * page)))
     virtual_page += 1
 
 
