@@ -9,6 +9,15 @@ from typing import List
 from processed_article import ProcessedArticle
 from datetime import datetime;
 from gensim.models import Doc2Vec
+from theme import Theme
+from theme_article_link import ThemeArticleLink
+
+class JointArticle:
+
+    def __init__(self, id, publish_date, words):
+        self.id = id;
+        self.publish_date = publish_date;
+        self.words = words;
 
 class ClusterJob(BaseJob):
 
@@ -24,12 +33,35 @@ class ClusterJob(BaseJob):
 
         clusterer = Clusterer(self.model, articles, self.load_id)
 
-        clusters = self.clusterer.create_clusters();
+        themes, mapping = clusterer.create_themes_and_mapping();
 
-        return clusters
+        self.__persist_themes(themes)
+        self.__persist_theme_article_map(mapping, articles);
+
+        return themes, mapping
+
+    def __persist_themes(self, themes: List[Theme] ):
+
+        session: Session = self.sessionmaker();
+
+        for theme in themes:
+            session.merge(theme)
+
+        session.commit();
 
 
-    def filter_articles(self, years = 2):
+
+    def __persist_theme_article_map(self, theme_mapping, articles):
+        session: Session = self.sessionmaker();
+
+        for i, cluster_id in enumerate(theme_mapping):
+            article = articles[i];
+            theme_article_map = ThemeArticleLink(cluster_id, article.id, self.load_id)
+            session.merge(theme_article_map)
+
+        session.commit()
+
+    def filter_articles(self, years = 1):
 
         
         session: Session = self.sessionmaker();
@@ -38,8 +70,10 @@ class ClusterJob(BaseJob):
 
         n_years_ago = most_recent_date.replace(year = most_recent_date.year - years)
 
-        q = session.query(Article).join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id)).filter(Article.publish_date >= n_years_ago)
+        q = session.query(Article.id, Article.publish_date, ProcessedArticle.words).join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id)).filter(Article.publish_date >= n_years_ago)
         articles = q.all();
+
+        articles = [JointArticle(art[0], art[1], art[2]) for art in articles]
 
         return articles;
 

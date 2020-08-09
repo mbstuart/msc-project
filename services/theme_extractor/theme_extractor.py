@@ -15,12 +15,12 @@ class ThemeExtractor(BaseJob):
 
         cluster_job = ClusterJob(model, load_id)
 
-        clusters = cluster_job.get_clusters();
+        themes, mapping = cluster_job.get_clusters();
 
-        return clusters;
+        return themes;
 
 te = ThemeExtractor()
 
-clusters = te.get_clusters()
+themes = te.get_clusters()
 
-print(clusters[:100])
+print(themes[:100])

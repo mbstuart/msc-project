@@ -7,6 +7,8 @@ from processed_article import ProcessedArticle
 from sklearn.cluster import AgglomerativeClustering
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 import os
+from theme import Theme
+from article import Article
 
 class Clusterer():
 
@@ -26,15 +28,33 @@ class Clusterer():
         if self.__model_is_saved():
             self.cluster_matrix = self.__load_cluster_matrix()
         else:
-            self.cluster_matrix = self.create_cluster_matrix()
+            self.cluster_matrix = self.__create_cluster_matrix()
 
-    def create_cluster_matrix(self):
+    def create_themes_and_mapping(self):
+        mapping = self.__create_clusters()
+        themes = self.__create_themes(mapping);
+        return themes, mapping
+
+    def __create_cluster_matrix(self):
         instance_vectors = self.__get_vecs_for_classification();
         return self.__create_agglomerative_clustering_model(instance_vectors);
         
-    def create_clusters(self):
+    def __create_clusters(self):
         clusters = fcluster(self.cluster_matrix, 200, criterion='maxclust')
         return clusters;
+
+    def __create_themes(self, clusters):
+
+        cluster_ids = np.unique(clusters);
+
+        themes = []
+
+        for cluster in cluster_ids:
+            theme_words = self.__get_class_words_for_label(clusters, cluster)
+            theme_model = Theme(int(cluster), 'Cluster-{}'.format(str(cluster)), self.load_id, theme_words)
+            themes.append(theme_model)
+
+        return themes
 
     def __get_vecs_for_classification(self):
         vecs = self.model.docvecs.vectors_docs[:(len(self.processed_articles))]
@@ -50,14 +70,18 @@ class Clusterer():
 
         return vecs_with_dates
 
+    def __folder_path(self):
+        return '{}/{}'.format(self.__CLUSTER_FOLDER, self.load_id)
+
     def __file_path(self):
-        return '{}/{}/{}.npy'.format(self.__CLUSTER_FOLDER, self.load_id, self.__CLUSTER_FILE)
+        return '{}/{}.npy'.format(self.__folder_path(), self.__CLUSTER_FILE)
 
     def __model_is_saved(self):
         return os.path.isfile(self.__file_path());
 
     def __create_agglomerative_clustering_model(self, vectors: np.array):
         Z = linkage(vectors, metric='cosine', method='complete')
+        os.mkdir(self.__folder_path())
         np.save(self.__file_path(), Z)
         return Z;
 
@@ -83,11 +107,11 @@ class Clusterer():
         
         return self.__get_class_words_from_doc_selection(docs_in_class, vecs)
 
-    def __get_class_words_from_doc_selection(self, docs_in_class, vecs):
+    def __get_class_words_from_doc_selection(self, docs_in_class: List[ProcessedArticle], vecs):
         doc_dict = {}
 
         for doc in docs_in_class:
-            for word in doc[0]:
+            for word in doc.words:
                 if word in doc_dict:
                     doc_dict[word] += 1
                 else:
