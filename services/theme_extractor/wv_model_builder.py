@@ -1,6 +1,6 @@
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from typing import List
-from processed_article import ProcessedArticle
+from services.libs.data_model.processed_article import ProcessedArticle
 
 class WVModelBuilder:
 

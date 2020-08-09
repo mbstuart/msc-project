@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from article import Article
-from article_load import ArticleLoad
+from services.libs.data_model.article import Article
+from services.libs.data_model.article_load import ArticleLoad
 from datetime import datetime
 
 class ArticleLoader:

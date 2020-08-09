@@ -1,10 +1,11 @@
-from article_load import ArticleLoad
+from services.libs.data_model.article import Article
+from services.libs.data_model.article_load import ArticleLoad
+from services.libs.data_model.processed_article import ProcessedArticle
+
 from sqlalchemy.orm import sessionmaker, Session
-from article import Article
 from sqlalchemy import create_engine, desc
-from article_preprocessor import ArticlePreprocessor
+
 from typing import List
-from processed_article import ProcessedArticle
 
 class BaseJob:
 

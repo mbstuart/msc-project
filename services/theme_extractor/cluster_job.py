@@ -1,16 +1,23 @@
+from services.libs.data_model.article import Article
+from services.libs.data_model.article_load import ArticleLoad
+from services.libs.data_model.processed_article import ProcessedArticle
+from services.libs.data_model.theme import Theme
+from services.libs.data_model.theme_article_link import ThemeArticleLink
+
 from base_job import BaseJob
 from clusterer import Clusterer
-from article_load import ArticleLoad
+
+
 from sqlalchemy.orm import sessionmaker, Session
-from article import Article
 from sqlalchemy import create_engine, desc, and_
+
 from article_preprocessor import ArticlePreprocessor
+
 from typing import List
-from processed_article import ProcessedArticle
+
 from datetime import datetime;
 from gensim.models import Doc2Vec
-from theme import Theme
-from theme_article_link import ThemeArticleLink
+
 
 class JointArticle:
 

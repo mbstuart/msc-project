@@ -1,3 +1,7 @@
+from services.libs.data_model.article import Article
+from services.libs.data_model.article_load import ArticleLoad
+from services.libs.data_model.processed_article import ProcessedArticle
+
 import json
 from pathlib import Path
 from bs4 import BeautifulSoup
@@ -13,8 +17,7 @@ from gensim.models.phrases import Phrases, Phraser
 from math import ceil
 from logger import logger
 from typing import List
-from article import Article
-from processed_article import ProcessedArticle
+
 
 class ArticlePreprocessor: 
        
