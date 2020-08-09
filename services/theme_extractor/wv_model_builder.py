@@ -1,0 +1,34 @@
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+from typing import List
+from processed_article import ProcessedArticle
+
+class WVModelBuilder:
+
+    cores = 4
+
+    def build_wv_model(self, processed_articles: List[ProcessedArticle]):
+        tagged_docs = [self.__get_tagged_doc(article, i) for i, article in enumerate(processed_articles)]
+        model = self.__build_model(tagged_docs)
+        return model;
+
+    def __get_tagged_doc(self, processed_article: ProcessedArticle, i):
+        return TaggedDocument(words=processed_article.words, tags=[processed_article.id])
+    
+    def __build_model(self, tagged_data):
+        vec_size = 400
+
+        model = Doc2Vec(vector_size=vec_size,
+                    workers = self.cores,
+                    min_count=5,
+                        dm =1)
+
+        model.build_vocab(tagged_data)
+
+        model.train(tagged_data,
+                        total_examples=model.corpus_count,
+                    epochs = model.epochs
+                        )
+
+
+        
+        return model
