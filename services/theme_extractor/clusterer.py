@@ -3,12 +3,12 @@ from scipy import spatial
 from gensim.models import Doc2Vec
 import numpy as np
 from typing import List
-from processed_article import ProcessedArticle
+from services.data_extractor.models.processed_article import ProcessedArticle
 from sklearn.cluster import AgglomerativeClustering
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 import os
-from theme import Theme
-from article import Article
+from services.data_extractor.models.theme import Theme
+from services.data_extractor.models.article import Article
 
 class Clusterer():
 

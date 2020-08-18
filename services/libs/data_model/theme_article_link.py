@@ -1,18 +1,21 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
-from base_model import Base
+from .base_model import Base
 import uuid
 
 class ThemeArticleLink(Base):
 
     __tablename__ = 'ThemeArticleMapping'
-    __table_args__ = {'schema':'TE'}
+    __table_args__ = (ForeignKeyConstraint(['ThemeId', 'ArticleLoadId'],
+                                           ['TE.Themes.ThemeId', 'TE.Themes.ArticleLoadId']),
+                    ForeignKeyConstraint(['ArticleLoadId', 'ArticleId'],
+                                           ['TE.ProcessedArticles.ArticleLoadId', 'TE.ProcessedArticles.Id']), {'schema':'TE'});
 
-    theme_id = Column('ThemeId', Integer, ForeignKey('TE.Themes.ThemeId'), primary_key=True,)
-    article_id = Column('ArticleId', String, ForeignKey('TE.ProcessedArticles.Id'), primary_key=True)
-    article_load_id = Column('ArticleLoadId', UUID(as_uuid=True), ForeignKey('TE.ProcessedArticles.ArticleLoadId'), primary_key=True)
-    
+    theme_id = Column('ThemeId', Integer, primary_key=True,)
+    article_id = Column('ArticleId', String, primary_key=True)
+    article_load_id = Column('ArticleLoadId', UUID(as_uuid=True), primary_key=True)
+    article = relationship('ProcessedArticle')
 
     def __init__(self, theme_id, article_id, article_load_id):
         self.theme_id = int(theme_id)

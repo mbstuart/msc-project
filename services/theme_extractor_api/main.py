@@ -6,6 +6,8 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine, desc
 from services.libs.data_model.processed_article import ProcessedArticle
 from typing import List
+from .emerging_theme_extractor import EmergingThemeExtractor
+import jsonpickle
 
 app = Flask(__name__)
 @app.route('/documents')
@@ -35,5 +37,17 @@ def documents():
     ];
 
     return jsonify({'documents':results})
+
+@app.route('/emerging-themes')
+def emerging_themes():
+    ete = EmergingThemeExtractor()
+
+    theme =  ete.get_emerging_themes()
+
+
+
+    return jsonify({
+        'themes': theme
+        })
 
 app.run()

@@ -4,7 +4,7 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from services.libs.data_model.theme import Theme
 from services.libs.data_model.theme_article_link import ThemeArticleLink
 
-from base_job import BaseJob
+from .article_preprocessorbase_job import BaseJob
 from clusterer import Clusterer
 
 
@@ -77,7 +77,9 @@ class ClusterJob(BaseJob):
 
         n_years_ago = most_recent_date.replace(year = most_recent_date.year - years)
 
-        q = session.query(Article.id, Article.publish_date, ProcessedArticle.words).join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id)).filter(Article.publish_date >= n_years_ago)
+        q = session.query(Article.id, Article.publish_date, ProcessedArticle.words).\
+        join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id))\
+            .filter(Article.publish_date >= n_years_ago)
         articles = q.all();
 
         articles = [JointArticle(art[0], art[1], art[2]) for art in articles]
