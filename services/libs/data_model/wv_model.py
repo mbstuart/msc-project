@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, LargeBinary
 from sqlalchemy.dialects.postgresql import UUID
-from base_model import Base
+
+from services.libs.data_model.base_model import Base
+
 import uuid
 import os
 import base64

@@ -19,13 +19,14 @@ class EmergingThemeExtractor(BaseJob):
         super().__init__()
 
 
-    def get_emerging_themes(self):
+    def get_emerging_themes(self, frequency='month'):
 
-        theme_ids = self.__extract_emerging_themes_table();
+        theme_ids = self.__extract_emerging_themes_table(frequency);
         themes = self.__get_theme_information_from_db(theme_ids);
-        print(themes)
         return themes;
         
+    def get_theme(self, theme_ids: List[str]):
+        return self.__get_theme_information_from_db(theme_ids)
 
     def __get_theme_information_from_db(self, theme_ids: List[str]):
         session: Session = self.sessionmaker();
@@ -70,12 +71,15 @@ class EmergingThemeExtractor(BaseJob):
 
         return collated_themes
 
-    def __extract_emerging_themes_table(self):
+    def __extract_emerging_themes_table(self, frequency='month'):
 
         load_id: UUID = str(self.get_latest_article_load().id)
 
         tod = datetime.now()
-        d = timedelta(days = 30 * 10) 
+        if frequency == 'month':
+            d = timedelta(days = 30 * 10)
+        elif frequency == 'week':
+            d = timedelta(days = 7 * 10) 
         from_date = tod - d;
 
         session: Session = self.sessionmaker()
@@ -85,15 +89,18 @@ class EmergingThemeExtractor(BaseJob):
         join(ProcessedArticle).\
         join(Article).\
         filter_by(article_load_id = load_id).\
+        filter(Theme.id != -1).\
         filter(Article.publish_date >= from_date).\
-        add_columns(extract('year', Article.publish_date).label("year"), extract('month', Article.publish_date).label("month"), func.count(Article.id).label("num_articles")).\
-        group_by(Theme.id, extract('year', Article.publish_date), extract('month', Article.publish_date))
+        add_columns(extract('year', Article.publish_date).label("year"), extract(frequency, Article.publish_date).label(frequency), func.count(Article.id).label("num_articles")).\
+        group_by(Theme.id, extract('year', Article.publish_date), extract(frequency, Article.publish_date))
         
+        print(emerging_themes_agg.statement)
+
         df = pd.read_sql(emerging_themes_agg.statement, emerging_themes_agg.session.bind)
         
         themes = np.unique(df['ThemeId'])
         years = np.unique(df['year'])
-        months = np.unique(df['month'])
+        months = np.unique(df[frequency])
 
         new_data = []
 
@@ -114,6 +121,6 @@ class EmergingThemeExtractor(BaseJob):
 
         df_with_avg = df_with_missing.join(avg_count.set_index('ThemeId'), on='ThemeId', rsuffix='_avg')
         df_with_avg['rel_count'] = df_with_avg['num_articles'] / df_with_avg['num_articles_avg']
-        filtered_df = df_with_avg[df_with_avg['month'] == max(months)][df_with_avg['rel_count'] > 1]
+        filtered_df = df_with_avg[df_with_avg[frequency] == max(months)][df_with_avg['rel_count'] > 1]
 
         return np.unique(filtered_df['ThemeId'])

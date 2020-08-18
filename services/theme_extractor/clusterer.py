@@ -3,18 +3,30 @@ from scipy import spatial
 from gensim.models import Doc2Vec
 import numpy as np
 from typing import List
-from services.data_extractor.models.processed_article import ProcessedArticle
+import os
+
+from services.libs.data_model.processed_article import ProcessedArticle
+
 from sklearn.cluster import AgglomerativeClustering
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
-import os
-from services.data_extractor.models.theme import Theme
-from services.data_extractor.models.article import Article
+
+from umap import UMAP
+from hdbscan import HDBSCAN
+
+from .logger import logger
+
+
+
+from services.libs.data_model.theme import Theme
+from services.libs.data_model.article import Article
 
 class Clusterer():
 
     __CLUSTER_FOLDER = 'clusters'
 
-    __CLUSTER_FILE = 'cluster_data'
+    __CLUSTER_FILE = 'cluster_data_hdbscan'
+
+    __UMAP_FILE = 'cluster_data_umap'
 
     processed_articles: list
 
@@ -26,21 +38,26 @@ class Clusterer():
         self.load_id = load_id
 
         if self.__model_is_saved():
-            self.cluster_matrix = self.__load_cluster_matrix()
+            logger.info('Loading HDBSCAN model from files')
+            self.cluster_matrix = self.__load_hdbscan_clusters()
         else:
-            self.cluster_matrix = self.__create_cluster_matrix()
+            logger.info('Creating HDBSCAN model from scratch')
+            self.cluster_matrix = self.__create_hdbscan_clusters()
 
     def create_themes_and_mapping(self):
+        logger.info('Request to get mapping / themes')
         mapping = self.__create_clusters()
         themes = self.__create_themes(mapping);
+        logger.info('Request to get mapping / themes complete')
         return themes, mapping
 
-    def __create_cluster_matrix(self):
+
+    def __create_hdbscan_clusters(self):
         instance_vectors = self.__get_vecs_for_classification();
-        return self.__create_agglomerative_clustering_model(instance_vectors);
+        return self.__create_hdbscan_model(instance_vectors);
         
     def __create_clusters(self):
-        clusters = fcluster(self.cluster_matrix, 200, criterion='maxclust')
+        clusters = self.cluster_matrix
         return clusters;
 
     def __create_themes(self, clusters):
@@ -57,18 +74,18 @@ class Clusterer():
         return themes
 
     def __get_vecs_for_classification(self):
-        vecs = self.model.docvecs.vectors_docs[:(len(self.processed_articles))]
+        vecs = list([self.model.docvecs[doc.id] for doc in self.processed_articles])
         
-        datetimes = np.array([art.publish_date for art in self.processed_articles])
+        # datetimes = np.array([art.publish_date for art in self.processed_articles])
 
-        max_date = np.amax(datetimes)
-        min_date = np.amin(datetimes)
+        # max_date = np.amax(datetimes)
+        # min_date = np.amin(datetimes)
 
-        normalised_datetimes = ((datetimes - min_date) / (max_date - min_date)).reshape((len(datetimes), 1))
+        # normalised_datetimes = ((datetimes - min_date) / (max_date - min_date)).reshape((len(datetimes), 1))
 
-        vecs_with_dates = np.append(vecs, normalised_datetimes, axis=1)
+        # vecs_with_dates = np.append(vecs, normalised_datetimes, axis=1)
 
-        return vecs_with_dates
+        return vecs
 
     def __folder_path(self):
         return '{}/{}'.format(self.__CLUSTER_FOLDER, self.load_id)
@@ -76,23 +93,78 @@ class Clusterer():
     def __file_path(self):
         return '{}/{}.npy'.format(self.__folder_path(), self.__CLUSTER_FILE)
 
+    def __umap_file_path(self):
+        return '{}/{}.npy'.format(self.__folder_path(), self.__UMAP_FILE)
+
     def __model_is_saved(self):
         return os.path.isfile(self.__file_path());
 
-    def __create_agglomerative_clustering_model(self, vectors: np.array):
-        Z = linkage(vectors, metric='cosine', method='complete')
-        os.mkdir(self.__folder_path())
-        np.save(self.__file_path(), Z)
-        return Z;
+    def __umap_is_saved(self):
+        return os.path.isfile(self.__umap_file_path());
+
+    def __create_hdbscan_model(self, vectors: np.array, max_number_to_cluster = 50000):
+        
+        logger.info('Creating HDBSCAN model on {} / {} documents'.format(max_number_to_cluster, len(vectors)))
+        
+        if self.__umap_is_saved():
+            logger.info('Loading UMAP from disk')
+            embedding = self.__load_umap()
+        else:
+            logger.info('Creating UMAP dimension reduction')
+            embedding = UMAP(random_state=666, metric='cosine', n_components=100, verbose=True).fit_transform(vectors)
+            logger.info('UMAP matrix created. Saving to disk.')
+            os.mkdir(self.__folder_path())
+            np.save(self.__umap_file_path(), embedding)
+        
+        max_number_to_cluster = min(max_number_to_cluster, len(vectors))
+        
+        logger.info('Creating HDBSCAN model')
+        clusterer = HDBSCAN(prediction_data=True, metric='euclidean', min_cluster_size=10, min_samples=2)
+        clusterer.fit(embedding[:max_number_to_cluster])
+        labels = clusterer.labels_;
+        num_clusters = labels.max();
+        num_unclassified = len(labels[labels == -1])
+
+        logger.info('HDBSCAN model created. It has detected {} clusters, with {} / {} documents unclassified.'.format(num_clusters, num_unclassified, len(labels)))
+        
+        np.save(self.__file_path(), labels)
+        return labels;
 
     def __load_cluster_matrix(self):
         Z = np.load(self.__file_path())
         return Z;
 
+    def __load_umap(self):
+        Z = np.load(self.__umap_file_path())
+        return Z;
+
+
+    def __load_hdbscan_clusters(self):
+        Z = np.load(self.__file_path())
+        return Z;
+
 
     def __get_class_words_for_label(self, labels: List[str], label: str):
-        docs_in_class = np.array(self.processed_articles)[:len(labels)][labels == label]
-        vecs = self.model.docvecs.vectors_docs[:len(labels)][labels == label]
+
+        doc_arr = np.array(self.processed_articles)
+        doc_arr_trimmed = doc_arr[:len(labels)]
+        docs_in_class = doc_arr_trimmed[labels == label]
+        # vecs = self.model.docvecs.vectors_docs[:len(labels)][labels == label]
+
+        vecs = list([self.model.docvecs[doc.id] for doc in docs_in_class])
+
+        #random check
+        i = 5
+
+        id = docs_in_class[i].id
+        vec = self.model.docvecs[id]
+        if not((vec == vecs[i]).all()):
+            print(id)
+            print(vec)
+            print(vecs[i])
+            
+            raise Exception('Vecs not matching!')
+
         class_words = self.__get_class_words_from_doc_selection(docs_in_class, vecs)
                 
         return class_words;
