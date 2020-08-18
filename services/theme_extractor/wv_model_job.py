@@ -2,7 +2,8 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from services.libs.data_model.wv_model import WVModel
 
 
-from wv_model_builder import WVModelBuilder
+from .wv_model_builder import WVModelBuilder
+
 from typing import List 
 from uuid import UUID, uuid4
 from .base_job import BaseJob

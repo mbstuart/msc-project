@@ -4,14 +4,14 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from services.libs.data_model.theme import Theme
 from services.libs.data_model.theme_article_link import ThemeArticleLink
 
-from .article_preprocessorbase_job import BaseJob
-from clusterer import Clusterer
+from .base_job import BaseJob
+from .clusterer import Clusterer
+from .article_preprocessor import ArticlePreprocessor
 
 
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine, desc, and_
 
-from article_preprocessor import ArticlePreprocessor
 
 from typing import List
 
@@ -68,7 +68,7 @@ class ClusterJob(BaseJob):
 
         session.commit()
 
-    def filter_articles(self, years = 1):
+    def filter_articles(self, years = 10):
 
         
         session: Session = self.sessionmaker();

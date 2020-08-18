@@ -42,12 +42,29 @@ def documents():
 def emerging_themes():
     ete = EmergingThemeExtractor()
 
-    theme =  ete.get_emerging_themes()
+    frequency = 'month'
+
+
+    if 'frequency' in request.args:
+        frequency = request.args['frequency']
+
+    theme =  ete.get_emerging_themes(frequency=frequency)
 
 
 
     return jsonify({
         'themes': theme
         })
+
+@app.route('/themes/<theme_id>')
+def get_single_theme(theme_id: str):
+    ete = EmergingThemeExtractor()
+
+    # theme_id = request.view_args['theme_id']
+
+    theme =  ete.get_theme([theme_id])
+
+    return jsonify(theme[0])
+
 
 app.run()

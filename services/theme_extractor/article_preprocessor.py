@@ -2,6 +2,8 @@ from services.libs.data_model.article import Article
 from services.libs.data_model.article_load import ArticleLoad
 from services.libs.data_model.processed_article import ProcessedArticle
 
+from .logger import logger
+
 import json
 from pathlib import Path
 from bs4 import BeautifulSoup
@@ -15,7 +17,6 @@ import multiprocessing
 cores = multiprocessing.cpu_count()
 from gensim.models.phrases import Phrases, Phraser
 from math import ceil
-from logger import logger
 from typing import List
 
 
