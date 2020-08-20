@@ -2,3 +2,15 @@
 /models
 /clusters
 *.log
+text_rank/__init__.py
+text_rank/graph.py
+text_rank/keyword_extractor.py
+text_rank/LICENSE
+text_rank/main.py
+text_rank/preprocessing.py
+text_rank/README.md
+text_rank/sample.txt
+text_rank/syntactic_unit.py
+sample-themes.csv
+test.ipynb
+w2v_test

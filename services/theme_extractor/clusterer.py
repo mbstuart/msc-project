@@ -32,17 +32,17 @@ class Clusterer():
 
     cluster_matrix: np.array
 
-    def __init__(self, model: Doc2Vec, processed_articles: list, load_id: str):
+    def __init__(self, model: Doc2Vec, processed_articles: list, load_id: str, from_scratch=False,min_cluster_size=5, min_samples=2, cluster_selection_epsilon=0.5):
         self.model = model
         self.processed_articles = processed_articles
         self.load_id = load_id
 
-        if self.__model_is_saved():
+        if self.__model_is_saved() and not(from_scratch):
             logger.info('Loading HDBSCAN model from files')
             self.cluster_matrix = self.__load_hdbscan_clusters()
         else:
             logger.info('Creating HDBSCAN model from scratch')
-            self.cluster_matrix = self.__create_hdbscan_clusters()
+            self.cluster_matrix = self.__create_hdbscan_clusters(from_scratch, min_cluster_size, min_samples, cluster_selection_epsilon)
 
     def create_themes_and_mapping(self):
         logger.info('Request to get mapping / themes')
@@ -52,9 +52,9 @@ class Clusterer():
         return themes, mapping
 
 
-    def __create_hdbscan_clusters(self):
+    def __create_hdbscan_clusters(self, from_scratch, min_cluster_size, min_samples, cluster_selection_epsilon):
         instance_vectors = self.__get_vecs_for_classification();
-        return self.__create_hdbscan_model(instance_vectors);
+        return self.__create_hdbscan_model(instance_vectors, from_scratch, min_cluster_size, min_samples, cluster_selection_epsilon);
         
     def __create_clusters(self):
         clusters = self.cluster_matrix
@@ -102,7 +102,7 @@ class Clusterer():
     def __umap_is_saved(self):
         return os.path.isfile(self.__umap_file_path());
 
-    def __create_hdbscan_model(self, vectors: np.array, max_number_to_cluster = 50000):
+    def __create_hdbscan_model(self, vectors: np.array, from_scratch, min_cluster_size, min_samples, cluster_selection_epsilon, max_number_to_cluster = 50000):
         
         logger.info('Creating HDBSCAN model on {} / {} documents'.format(max_number_to_cluster, len(vectors)))
         
@@ -119,7 +119,7 @@ class Clusterer():
         max_number_to_cluster = min(max_number_to_cluster, len(vectors))
         
         logger.info('Creating HDBSCAN model')
-        clusterer = HDBSCAN(prediction_data=True, metric='euclidean', min_cluster_size=10, min_samples=2)
+        clusterer = HDBSCAN(prediction_data=True, metric='euclidean', min_cluster_size=min_cluster_size, min_samples=min_samples, cluster_selection_epsilon=cluster_selection_epsilon)
         clusterer.fit(embedding[:max_number_to_cluster])
         labels = clusterer.labels_;
         num_clusters = labels.max();
@@ -127,7 +127,8 @@ class Clusterer():
 
         logger.info('HDBSCAN model created. It has detected {} clusters, with {} / {} documents unclassified.'.format(num_clusters, num_unclassified, len(labels)))
         
-        np.save(self.__file_path(), labels)
+        if not(from_scratch):
+            np.save(self.__file_path(), labels)
         return labels;
 
     def __load_cluster_matrix(self):
@@ -152,18 +153,6 @@ class Clusterer():
         # vecs = self.model.docvecs.vectors_docs[:len(labels)][labels == label]
 
         vecs = list([self.model.docvecs[doc.id] for doc in docs_in_class])
-
-        #random check
-        i = 5
-
-        id = docs_in_class[i].id
-        vec = self.model.docvecs[id]
-        if not((vec == vecs[i]).all()):
-            print(id)
-            print(vec)
-            print(vecs[i])
-            
-            raise Exception('Vecs not matching!')
 
         class_words = self.__get_class_words_from_doc_selection(docs_in_class, vecs)
                 

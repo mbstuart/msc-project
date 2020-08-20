@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, desc, and_
 
 from typing import List
 
-from datetime import datetime;
+from datetime import datetime
 from gensim.models import Doc2Vec
 
 
@@ -36,9 +36,9 @@ class ClusterJob(BaseJob):
 
 
     def get_clusters(self):
-        articles = self.filter_articles()
+        articles = self.filter_articles();
 
-        clusterer = Clusterer(self.model, articles, self.load_id)
+        clusterer = Clusterer(self.model, articles, self.load_id, min_cluster_size=3, cluster_selection_epsilon=0.2)
 
         themes, mapping = clusterer.create_themes_and_mapping();
 
@@ -70,7 +70,6 @@ class ClusterJob(BaseJob):
 
     def filter_articles(self, years = 10):
 
-        
         session: Session = self.sessionmaker();
 
         most_recent_date: datetime.datetime = session.query(Article).order_by(desc(Article.publish_date)).first().publish_date;
@@ -79,7 +78,8 @@ class ClusterJob(BaseJob):
 
         q = session.query(Article.id, Article.publish_date, ProcessedArticle.words).\
         join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id))\
-            .filter(Article.publish_date >= n_years_ago)
+            .filter(Article.publish_date >= n_years_ago)\
+            .order_by(desc(Article.publish_date))
         articles = q.all();
 
         articles = [JointArticle(art[0], art[1], art[2]) for art in articles]
