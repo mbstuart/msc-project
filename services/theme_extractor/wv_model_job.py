@@ -40,7 +40,7 @@ class WVModelJob(BaseJob):
         return model
 
     def __get_processed_articles_for_run_id(self, load_id: UUID) -> List[ProcessedArticle]:
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
         query = session.query(ProcessedArticle).filter_by(article_load_id = load_id)
         articles = query.all();
         return articles
@@ -50,7 +50,7 @@ class WVModelJob(BaseJob):
         os.mkdir(dir_name)
         model.save("{}/doc.model".format(dir_name))
         
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
 
         for f in os.listdir(dir_name):
             path = os.path.join(dir_name, f);

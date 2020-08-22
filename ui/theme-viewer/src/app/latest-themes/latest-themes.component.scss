@@ -1,0 +1,21 @@
+@import '../styles/list-view.scss';
+
+.row {
+
+    > .name {
+        flex: 1;
+    }
+
+    > .keywords {
+        flex: 4
+    }
+
+}
+
+.keyword {
+    background-color: gold;
+    border-radius: 5px;
+    padding: 5px;
+    display: inline-block;
+    margin: 2px;
+}

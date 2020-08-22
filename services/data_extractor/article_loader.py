@@ -10,11 +10,11 @@ class ArticleLoader:
 
     def __init__(self):
         self.engine = create_engine(self.db_string)
-        self.sessionmaker = sessionmaker()
-        self.sessionmaker.configure(bind=self.engine)
+        self.get_session = sessionmaker()
+        self.get_session.configure(bind=self.engine)
 
     def create_load_session(self):
-        session = self.sessionmaker();
+        session = self.get_session();
         load = ArticleLoad()
         session.add(load)
         session.commit()
@@ -22,7 +22,7 @@ class ArticleLoader:
         return load.id
 
     def insert_articles(self, article_list, load_id):
-        session = self.sessionmaker();
+        session = self.get_session();
 
         for article in article_list:
             article_row = Article(

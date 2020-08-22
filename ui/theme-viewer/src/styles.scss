@@ -1,1 +1,27 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'core.scss';
+
+*:focus {
+    outline: none;
+}
+
+html {
+    display: flex;
+    flex: 1;
+    height: 100%;
+    width: 100%;
+    background-color: $primary-color-light;
+}
+
+body {
+    display: flex;
+    flex: 1;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+app-root {
+    display: flex;
+    flex: 1;
+}
+/* Importing Bootstrap SCSS file. */
+@import '~bootstrap/scss/bootstrap';

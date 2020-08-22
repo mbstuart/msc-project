@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from .article import Article
 from .base_model import Base
+from .theme import Theme
 import uuid
 
 class ProcessedArticle(Base):

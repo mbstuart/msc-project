@@ -24,7 +24,7 @@ class ArticlePreprocessJob(BaseJob):
         self.commit_preprocessed_articles_to_database(preprocessed_articles)
         
     def get_articles_for_latest_load(self) -> List[Article]:
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
         latest_load = self.get_latest_article_load()
         query = session.query(Article).filter_by(article_load_id = latest_load.id)
         articles = query.all();
@@ -35,7 +35,7 @@ class ArticlePreprocessJob(BaseJob):
         return preprocessed_articles;
 
     def commit_preprocessed_articles_to_database(self, processed_articles: List[ProcessedArticle]):
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
 
         session.bulk_save_objects(processed_articles);
 

@@ -1,0 +1,64 @@
+
+$red: #f44336;
+$pink: #e91e63;
+$purple: #9c27b0;
+$deep-purple: #673ab7;
+$indigo: #3949ab;
+$blue: #1976d2;
+$light-blue: #039be5;
+$cyan: #00acc1;
+$teal: #00796b;
+$green: #388e3c;
+$light-green: #689f38;
+$lime: #afb42b;
+$yellow: #ffeb3b;
+
+$colors: (
+    "red": $red,
+    "pink": $pink,
+    "purple": $purple,
+    "deep-purple": $deep-purple,
+    "indigo": $indigo,
+    "blue": $blue,
+    "light-blue": $light-blue,
+    "cyan": $cyan,
+    "teal": $teal,
+    "green": $green,
+    "light-green": $light-green,
+    "lime": $lime,
+    "yellow": $yellow,
+
+);
+
+.theme-badge {
+
+    padding: 5px;
+    border-radius: 5px;
+
+    @each $colorname, $color in $colors {
+        &.color-#{$colorname} {
+            background-color: $color;
+        }
+    }
+}
+
+:host {
+    cursor: pointer;
+}
+
+
+::ng-deep .theme-popover {
+    height: 60vh;
+    width: 40vw;
+
+    max-height: 60vh;
+    max-width: 40vw;
+
+    display: flex;
+    flex-direction: column;
+
+    > .popover-body {
+        flex: 1;
+        overflow-y: auto;
+    }
+}

@@ -1,0 +1,15 @@
+<div class ="articles">
+    <div class="row" *ngFor="let theme of themes" >
+        <div>
+            <app-theme-tag [theme]="theme" ></app-theme-tag>
+        </div>
+        <div class="keywords">
+            <span class="keyword" *ngFor="let keyword of theme.keywords" >
+                {{formatKeyword(keyword)}}
+            </span>
+        </div>
+  
+        
+    </div>
+</div>
+

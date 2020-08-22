@@ -1,0 +1,12 @@
+@import '../../core.scss';
+
+:host {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        background-color: $primary-color-text;
+        padding: 5px;
+        max-height: 100%;
+        // overflow-y: auto;
+}
