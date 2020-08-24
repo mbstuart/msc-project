@@ -125,6 +125,12 @@ class Clusterer():
         num_clusters = labels.max();
         num_unclassified = len(labels[labels == -1])
 
+        biggest_classes = Counter(labels).most_common(5)
+
+        biggest_class_logs = ['class {}, {} documents'.format(cl[0], cl[1]) for cl in biggest_classes]
+
+        logger.info('5 biggest classes: {}'.format('\n'.join(biggest_class_logs)));
+
         logger.info('HDBSCAN model created. It has detected {} clusters, with {} / {} documents unclassified.'.format(num_clusters, num_unclassified, len(labels)))
         
         if not(from_scratch):

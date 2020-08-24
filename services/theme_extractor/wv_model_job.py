@@ -21,16 +21,17 @@ class WVModelJob(BaseJob):
         ##Something
         # 
 
-    def create_model_for_latest_run(self):
+    def create_model_for_latest_run(self) -> Doc2Vec:
         load_id = self.get_latest_article_load().id
-        self.create_model_for_run_id(load_id)
+        return self.create_model_for_run_id(load_id)
 
-    def create_model_for_run_id(self, load_id: UUID):
+    def create_model_for_run_id(self, load_id: UUID) -> Doc2Vec:
         articles = self.__get_processed_articles_for_run_id(load_id)
         model = self.create_wv_model_for_processed_articles(articles)
         self.__persist_model(model, load_id)
+        return model;
 
-    def get_model_from_disk(self, load_id: UUID):
+    def get_model_from_disk(self, load_id: UUID) -> Doc2Vec:
         model_dir = "models/{}".format(load_id);
         model = Doc2Vec.load(os.path.join(model_dir, "doc.model"))
         return model;
@@ -40,7 +41,7 @@ class WVModelJob(BaseJob):
         return model
 
     def __get_processed_articles_for_run_id(self, load_id: UUID) -> List[ProcessedArticle]:
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
         query = session.query(ProcessedArticle).filter_by(article_load_id = load_id)
         articles = query.all();
         return articles
@@ -49,13 +50,4 @@ class WVModelJob(BaseJob):
         dir_name = "models/{}".format(load_id)
         os.mkdir(dir_name)
         model.save("{}/doc.model".format(dir_name))
-        
-        session: Session = self.sessionmaker();
-
-        for f in os.listdir(dir_name):
-            path = os.path.join(dir_name, f);
-            wv_model = WVModel(load_id, path, path);
-            session.merge(wv_model)
-        
-        session.commit();
   

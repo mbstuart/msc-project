@@ -1,0 +1,80 @@
+@import '../core.scss';
+
+.root-component {
+    display: flex;
+    // padding: 10px;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    flex-direction: column;
+    // background-color: white;
+    box-sizing: border-box;
+
+    > :not(router-outlet) {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+    }
+}
+
+
+
+:host {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.nav-bar-root {
+    width: 100px;
+        background-color: $primary-color;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex: 1;
+}
+
+.title {
+    font-size: x-large;
+    padding: 10px;
+    color: $primary-color-text;
+}
+
+.tabs {
+    display: flex;
+    flex-direction: column;
+
+    justify-content: flex-start;
+    align-items: stretch;
+    border-top: white solid thin;
+    .tab {
+        height: 50px;
+        color: $primary-color-text;
+        display: flex;
+        // background-color: $accent-color;
+        border-bottom: white solid thin;
+        cursor: pointer;
+
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 0px 10px;
+
+        > .icon-container {
+            width: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        &.active {
+            background-color: $primary-color-dark;
+
+        }
+    }
+}

@@ -15,7 +15,7 @@ class ThemeArticleLink(Base):
     theme_id = Column('ThemeId', Integer, primary_key=True,)
     article_id = Column('ArticleId', String, primary_key=True)
     article_load_id = Column('ArticleLoadId', UUID(as_uuid=True), primary_key=True)
-    article = relationship('ProcessedArticle')
+    article = relationship('ProcessedArticle', backref = "theme_article_link")
 
     def __init__(self, theme_id, article_id, article_load_id):
         self.theme_id = int(theme_id)

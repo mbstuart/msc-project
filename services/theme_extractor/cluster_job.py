@@ -38,7 +38,7 @@ class ClusterJob(BaseJob):
     def get_clusters(self):
         articles = self.filter_articles();
 
-        clusterer = Clusterer(self.model, articles, self.load_id, min_cluster_size=3, cluster_selection_epsilon=0.2)
+        clusterer = Clusterer(self.model, articles, self.load_id, min_cluster_size=3, cluster_selection_epsilon=0.0)
 
         themes, mapping = clusterer.create_themes_and_mapping();
 
@@ -49,7 +49,7 @@ class ClusterJob(BaseJob):
 
     def __persist_themes(self, themes: List[Theme] ):
 
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
 
         for theme in themes:
             session.merge(theme)
@@ -59,7 +59,7 @@ class ClusterJob(BaseJob):
 
 
     def __persist_theme_article_map(self, theme_mapping, articles):
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
 
         for i, cluster_id in enumerate(theme_mapping):
             article = articles[i];
@@ -70,7 +70,7 @@ class ClusterJob(BaseJob):
 
     def filter_articles(self, years = 10):
 
-        session: Session = self.sessionmaker();
+        session: Session = self.get_session();
 
         most_recent_date: datetime.datetime = session.query(Article).order_by(desc(Article.publish_date)).first().publish_date;
 
@@ -79,6 +79,7 @@ class ClusterJob(BaseJob):
         q = session.query(Article.id, Article.publish_date, ProcessedArticle.words).\
         join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id))\
             .filter(Article.publish_date >= n_years_ago)\
+            .filter(Article.article_load_id == self.load_id)\
             .order_by(desc(Article.publish_date))
         articles = q.all();
 

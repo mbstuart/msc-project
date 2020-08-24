@@ -1,0 +1,91 @@
+@import '../../core.scss';
+:host {
+    overflow-y: auto;
+    flex: 1;
+        padding: 5px;
+        overflow-x: hidden;
+}
+
+.list-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    padding: 0 10px;
+    overflow-y: auto;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+
+    background-color: $primary-color-text;
+    // margin-bottom: 5px;
+    border-bottom: $divider-color 1px solid;
+    padding: 5px;
+
+    align-items: center;
+
+    > * {
+        padding: 5px;
+    }
+
+    > .title {
+        flex: 3;
+    }
+
+    > .theme {
+        flex: 1
+    }
+
+    > .publish-date {
+        flex: 1
+    }
+
+    &.even {
+        background-color: #f1f1f1;
+    }
+}
+
+$red: #f44336;
+$pink: #e91e63;
+$purple: #9c27b0;
+$deep-purple: #673ab7;
+$indigo: #3949ab;
+$blue: #1976d2;
+$light-blue: #039be5;
+$cyan: #00acc1;
+$teal: #00796b;
+$green: #388e3c;
+$light-green: #689f38;
+$lime: #afb42b;
+$yellow: #ffeb3b;
+
+$colors: (
+    "red": $red,
+    "pink": $pink,
+    "purple": $purple,
+    "deep-purple": $deep-purple,
+    "indigo": $indigo,
+    "blue": $blue,
+    "light-blue": $light-blue,
+    "cyan": $cyan,
+    "teal": $teal,
+    "green": $green,
+    "light-green": $light-green,
+    "lime": $lime,
+    "yellow": $yellow,
+
+);
+
+.theme-badge {
+
+    padding: 5px;
+    border-radius: 5px;
+
+    @each $colorname, $color in $colors {
+        &.color-#{$colorname} {
+            background-color: $color;
+        }
+    }
+}

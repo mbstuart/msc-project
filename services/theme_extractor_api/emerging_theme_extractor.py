@@ -27,30 +27,31 @@ class EmergingThemeExtractor(BaseJob):
     def get_emerging_themes(self, frequency='month'):
 
         theme_ids = self.__extract_emerging_themes_table(frequency);
-        logger.info('Getting themes information from DB')
+        # logger.info('Getting themes information from DB')
         themes = self.__get_theme_information_from_db(theme_ids);
-        logger.info('Themes information retrieved from DB')
+        # logger.info('Themes information retrieved from DB')
         return themes;
         
     def get_theme(self, theme_ids: List[str]):
         return self.__get_theme_information_from_db(theme_ids)
 
-    def __get_theme_information_from_db(self, theme_ids: List[str]):
-        session: Session = self.sessionmaker();
+    def __get_theme_information_from_db(self, theme_ids: List[int]):
+        session: Session = self.get_session();
 
         subquery = session.query(Theme.id, Theme.name, Theme.theme_words, Article.id, Article.publish_date, Article.title, func.rank().over(
                 order_by=Article.publish_date.desc(),
                 partition_by=(Theme.article_load_id, Theme.id)
             ).label('rank')).\
-            filter(Theme.id.in_(theme_ids)).\
+            filter(Theme.id.in_([int(id) for id in theme_ids])).\
             join(ThemeArticleLink).\
             join(ProcessedArticle).\
             join(Article).\
             subquery()
 
-        themes = session.query(subquery).\
-            filter(subquery.c.rank <= 4).\
-            all()
+        q = session.query(subquery).\
+            filter(subquery.c.rank <= 10)
+
+        themes = q.all()
 
         collated_themes: List[Theme] = []
 
@@ -71,8 +72,12 @@ class EmergingThemeExtractor(BaseJob):
 
             collated_theme['articles'].append({
                 'id': theme[3],
-                'publish_date': theme[4],
+                'publishDate': theme[4],
                 'title': theme[5],
+                'theme': {
+                    'id': theme[0],
+                    'name': theme[1],
+                }
             })
 
 
@@ -88,7 +93,7 @@ class EmergingThemeExtractor(BaseJob):
             d = timedelta(days = 7 * 10) 
         from_date = tod - d;
 
-        session: Session = self.sessionmaker()
+        session: Session = self.get_session()
 
         emerging_themes_agg = session.query(Theme.id).\
         join(ThemeArticleLink).\
@@ -106,35 +111,23 @@ class EmergingThemeExtractor(BaseJob):
 
     def __extract_emerging_themes_table(self, frequency='month'):
 
-        logger.info('Starting emerging theme extraction. Getting data from db.')
+        # logger.info('Starting emerging theme extraction. Getting data from db.')
 
         df = self.extract_themes_table(frequency=frequency)
-        
-        logger.info('Themes extracted from db. Getting latest.')
+
+        # logger.info('Themes extracted from db. Getting latest.')
 
         yms = np.unique(df[['year', frequency]].to_numpy(), axis=0)
 
         themes = np.unique(df['ThemeId'])
 
-        new_data = []
-        for theme in themes:
-            for ym in yms:
-                arr = np.array([theme,ym[0],ym[1]])
-                exists = (df[df.columns[1:4]] == arr).all(1).any()
-                if not(exists):
-                    new_data.append(arr)
+        avg_count = df.groupby('ThemeId').mean().reset_index()
 
-        new_data_df = pd.DataFrame(new_data, columns=df.columns[1:4])
-        new_data_df['num_articles'] = 0
-        df_with_missing = pd.concat([df, new_data_df], sort=False).reset_index()
-
-        avg_count = df_with_missing.groupby('ThemeId').mean().reset_index()
-
-        df_with_avg = df_with_missing.join(avg_count.set_index('ThemeId'), on='ThemeId', rsuffix='_avg')
+        df_with_avg = df.join(avg_count.set_index('ThemeId'), on='ThemeId', rsuffix='_avg')
         df_with_avg['rel_count'] = df_with_avg['num_articles'] / df_with_avg['num_articles_avg']
         
         filtered_df = df_with_avg[df_with_avg[frequency] == yms[-1][1]][df_with_avg['year'] == yms[-1][0]][df_with_avg['rel_count'] > 1]
 
-        logger.info('Latest themes extracted')
+        # logger.info('Latest themes extrfacted')
 
-        return np.unique(filtered_df['ThemeId'])
+        return np.unique(filtered_df['ThemeId']).astype(int)

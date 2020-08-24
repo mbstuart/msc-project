@@ -5,20 +5,18 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine, desc
 
+from services.libs.db_connection.session import get_session
+
 from typing import List
 
 class BaseJob:
 
-    db_string = "postgres://theme-extractor:tepassword@localhost:5432/theme-extractor"
-
-    sessionmaker: sessionmaker
-
-    def __init__(self):
-        self.engine = create_engine(self.db_string)
-        self.sessionmaker = sessionmaker()
-        self.sessionmaker.configure(bind=self.engine)
+    def get_session(self):
+        session = get_session()
+        return session;
     
     def get_latest_article_load(self) -> ArticleLoad:
-        session = self.sessionmaker();
+        session: Session = self.get_session();
         res = session.query(ArticleLoad).order_by(desc(ArticleLoad.start_time)).first() 
         return res; 
+
