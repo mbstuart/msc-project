@@ -79,6 +79,7 @@ class ClusterJob(BaseJob):
         q = session.query(Article.id, Article.publish_date, ProcessedArticle.words).\
         join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id))\
             .filter(Article.publish_date >= n_years_ago)\
+            .filter(Article.article_load_id == self.load_id)\
             .order_by(desc(Article.publish_date))
         articles = q.all();
 

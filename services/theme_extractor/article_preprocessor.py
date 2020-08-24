@@ -11,7 +11,7 @@ import nltk
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
 import en_core_web_sm
-nlp = en_core_web_sm.load()
+nlp = en_core_web_sm.load(disable=['ner', 'parser'])
 from gensim.utils import simple_preprocess
 import multiprocessing
 cores = multiprocessing.cpu_count()
@@ -37,17 +37,17 @@ class ArticlePreprocessor:
         
     def __get_tagged_data(self, articles: List[Article]) -> List[ProcessedArticle]:
         logger.info('Getting tagged data')
-        texts = [self.__extract_text_from_html(res.body) for res in articles]
+        self.texts = [self.__extract_text_from_html(res.body) for res in articles]
         logger.info('Extracted from HTML')
-        preprocessed_docs = self.__preprocess_docs(texts)
+        self.preprocessed_docs = self.__preprocess_docs(self.texts)
         logger.info('Docs preprocessed and tokenized')
-        phrase_texts = self.__build_phrases(preprocessed_docs)    
+        self.phrase_texts = self.__build_phrases(self.preprocessed_docs);    
         logger.info('Phrases built')
-        processed_articles: List[ProcessedArticle] = []
+        self.processed_articles: List[ProcessedArticle] = []
         for i, article in enumerate(articles):
-            pa = ProcessedArticle(article.id, article.article_load_id, phrase_texts[i])
-            processed_articles.append(pa)
-        return processed_articles
+            pa = ProcessedArticle(article.id, article.article_load_id, self.phrase_texts[i])
+            self.processed_articles.append(pa)
+        return self.processed_articles
 
     def __extract_text_from_html(self, res: str) -> str:
         soup = BeautifulSoup(res, features="lxml")
@@ -66,11 +66,17 @@ class ArticlePreprocessor:
         l = len(results)
         
         step = ceil(l / 20)
+
+        def pick_token(token):
+            return token.pos_ in allowed_postags and len(token.lemma_) > 1
         
-        for i, res in enumerate(results):
+        i = 0;
+
+        for res in nlp.pipe(results):
             
-            out.append([token.lemma_ for token in nlp(res) if token.pos_ in allowed_postags])
+            out.append([token.lemma_ for token in res if pick_token(token)])
             
+            i += 1
             if i % step == 0:
                 logger.info('Preprocess - {:d}% completed'.format(ceil(100 * i / l)))
             

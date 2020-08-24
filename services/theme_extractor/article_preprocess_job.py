@@ -5,8 +5,8 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine, desc
 
-from article_preprocessor import ArticlePreprocessor
-from base_job import BaseJob
+from .article_preprocessor import ArticlePreprocessor
+from .base_job import BaseJob
 
 from typing import List
 
@@ -22,11 +22,19 @@ class ArticlePreprocessJob(BaseJob):
         articles = self.get_articles_for_latest_load()
         preprocessed_articles = self.preprocess_raw_articles(articles);
         self.commit_preprocessed_articles_to_database(preprocessed_articles)
-        
-    def get_articles_for_latest_load(self) -> List[Article]:
-        session: Session = self.get_session();
+
+    def preprocess_latest_articles_for_load(self, load_id: str):
+        articles = self.get_articles_for_latest_load()
+        preprocessed_articles = self.preprocess_raw_articles(articles);
+        self.commit_preprocessed_articles_to_database(preprocessed_article);
+
+    def get_articles_for_latest_load(self):
         latest_load = self.get_latest_article_load()
-        query = session.query(Article).filter_by(article_load_id = latest_load.id)
+        return self.get_articles_for_load(latest_load.id);
+        
+    def get_articles_for_load(self, load_id: str) -> List[Article]:
+        session: Session = self.get_session();
+        query = session.query(Article).filter_by(article_load_id = load_id)
         articles = query.all();
         return articles
 

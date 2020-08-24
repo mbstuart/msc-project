@@ -13,7 +13,7 @@ class ArticleLoader:
         self.get_session = sessionmaker()
         self.get_session.configure(bind=self.engine)
 
-    def create_load_session(self):
+    def create_load_session(self) -> str:
         session = self.get_session();
         load = ArticleLoad()
         session.add(load)
