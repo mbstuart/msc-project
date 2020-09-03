@@ -13,9 +13,13 @@ from services.libs.data_model.article import Article
 from .emerging_theme_extractor import EmergingThemeExtractor
 from .article_service import ArticleService
 
+from services.theme_extractor.theme_extractor import ThemeExtractor
+from flask_restplus import Api, Resource, fields
 import jsonpickle
 
 app = Flask(__name__)
+
+
 CORS(app)
 @app.route('/articles')
 def documents():
@@ -67,6 +71,34 @@ def get_single_theme(theme_id: str):
     theme =  ete.get_theme([theme_id])
 
     return jsonify(theme[0])
+
+@app.route('/load-data')
+def load_data():
+    
+    theme_extractor = ThemeExtractor()
+
+    from_stage = 0
+
+    load_id = None;
+
+    if 'stage' in request.args:
+        from_stage = int(request.args['stage'])
+
+    if 'load-id' in request.args:
+        load_id = request.args['load-id']
+
+    max_pages = None;
+
+    if 'max-pages' in request.args:
+        max_pages = request.args['max-pages']
+
+
+    theme_extractor.start_fresh_run(from_stage, load_id, max_pages)
+
+    return jsonify({
+        'success': True
+    })
+
 
 
 app.run()

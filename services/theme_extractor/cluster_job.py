@@ -21,10 +21,12 @@ from gensim.models import Doc2Vec
 
 class JointArticle:
 
-    def __init__(self, id, publish_date, words):
+    def __init__(self, id, publish_date, words, title, title_words):
         self.id = id;
         self.publish_date = publish_date;
         self.words = words;
+        self.title = title;
+        self.title_words = title_words;
 
 class ClusterJob(BaseJob):
 
@@ -35,10 +37,10 @@ class ClusterJob(BaseJob):
         self.load_id = load_id;
 
 
-    def get_clusters(self):
+    def get_clusters(self, from_scratch=False):
         articles = self.filter_articles();
 
-        clusterer = Clusterer(self.model, articles, self.load_id, min_cluster_size=3, cluster_selection_epsilon=0.0)
+        clusterer = Clusterer(self.model, articles, self.load_id, from_scratch=from_scratch, min_cluster_size=3, cluster_selection_epsilon=0.1)
 
         themes, mapping = clusterer.create_themes_and_mapping();
 
@@ -76,14 +78,14 @@ class ClusterJob(BaseJob):
 
         n_years_ago = most_recent_date.replace(year = most_recent_date.year - years)
 
-        q = session.query(Article.id, Article.publish_date, ProcessedArticle.words).\
+        q = session.query(Article.id, Article.publish_date, ProcessedArticle.words, Article.title, ProcessedArticle.title_words).\
         join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id))\
             .filter(Article.publish_date >= n_years_ago)\
             .filter(Article.article_load_id == self.load_id)\
             .order_by(desc(Article.publish_date))
         articles = q.all();
 
-        articles = [JointArticle(art[0], art[1], art[2]) for art in articles]
+        articles = [JointArticle(art[0], art[1], art[2], art[3], art[4]) for art in articles]
 
         return articles;
 

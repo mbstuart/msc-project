@@ -11,12 +11,29 @@ from typing import List
 
 class BaseJob:
 
+    session: Session
+
+    made_session: False
+
+    def __init__(self, session = None):
+
+        self.session = session;
+        if session is None:
+            self.made_session = True
+            self.session = get_session();
+
     def get_session(self):
-        session = get_session()
+        session = self.session
         return session;
     
     def get_latest_article_load(self) -> ArticleLoad:
         session: Session = self.get_session();
         res = session.query(ArticleLoad).order_by(desc(ArticleLoad.start_time)).first() 
         return res; 
+
+    def __del__(self):
+        print('in destructor');
+        if self.made_session:
+            print('deleting session');
+            self.session.close()
 

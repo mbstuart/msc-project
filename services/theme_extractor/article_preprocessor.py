@@ -38,14 +38,17 @@ class ArticlePreprocessor:
     def __get_tagged_data(self, articles: List[Article]) -> List[ProcessedArticle]:
         logger.info('Getting tagged data')
         self.texts = [self.__extract_text_from_html(res.body) for res in articles]
+        self.titles = [art.title for art in articles];
         logger.info('Extracted from HTML')
-        self.preprocessed_docs = self.__preprocess_docs(self.texts)
+        self.preprocessed_docs = self.__preprocess_docs(self.texts);
         logger.info('Docs preprocessed and tokenized')
-        self.phrase_texts = self.__build_phrases(self.preprocessed_docs);    
-        logger.info('Phrases built')
+        self.preprocessed_titles = self.__preprocess_docs(self.titles)
+        logger.info('Titles preprocessed and tokenized')
+        self.phrase_texts, self.phrase_titles = self.__build_phrases(self.preprocessed_docs, self.preprocessed_titles);    
+        logger.info('Phrases built for docs + titles')
         self.processed_articles: List[ProcessedArticle] = []
         for i, article in enumerate(articles):
-            pa = ProcessedArticle(article.id, article.article_load_id, self.phrase_texts[i])
+            pa = ProcessedArticle(article.id, article.article_load_id, self.phrase_texts[i], self.phrase_titles[i])
             self.processed_articles.append(pa)
         return self.processed_articles
 
@@ -59,7 +62,7 @@ class ArticlePreprocessor:
         
         return text
 
-    def __preprocess_docs(self, results, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV', 'PROPN']):
+    def __preprocess_docs(self, results: List[str], allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV', 'PROPN']):
         
         out = []
         
@@ -82,8 +85,8 @@ class ArticlePreprocessor:
             
         return out;
 
-    def __build_phrases(self, tokenized_texts):
+    def __build_phrases(self, tokenized_texts, tokenized_titles):
         
-        phrases = Phrases(tokenized_texts)
+        phrases = Phrases(tokenized_texts + tokenized_titles, scoring='npmi', threshold=0.2, min_count=50, progress_per=1000)
         
-        return [phrases[phrases[tokens]] for tokens in tokenized_texts]
+        return [phrases[phrases[tokens]] for tokens in tokenized_texts], [phrases[phrases[tokens]] for tokens in tokenized_titles]

@@ -15,9 +15,11 @@ class ProcessedArticle(Base):
     id = Column('Id', String, primary_key=True)
     article_load_id = Column('ArticleLoadId', UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     words = Column('Words', ARRAY(String))
+    title_words = Column('TitleWords', ARRAY(String))
     article = relationship(Article)
 
-    def __init__(self, id, article_load_id, words):
+    def __init__(self, id, article_load_id, words, title_words):
         self.id = id
         self.article_load_id = article_load_id
         self.words = words
+        self.title_words = title_words;
