@@ -1,3 +1,5 @@
+from flask import Flask, request, jsonify
+from flask_restplus import Resource, Api, fields
 
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import UUID
@@ -11,12 +13,15 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from services.libs.data_model.theme import Theme
 from services.libs.data_model.theme_article_link import ThemeArticleLink
 
-class ArticleService(BaseJob):
+from .root_api import articles_ns as api
+from .api_models import articles_field
 
-    def __init__(self): 
-        super().__init__()
+@api.route('/articles')
+class ArticleApi(Resource, BaseJob):
+
     
-    def get_articles(self):
+    @api.marshal_with(articles_field)
+    def get(self):
 
         load_id = self.get_latest_article_load().id;
 
@@ -28,6 +33,18 @@ class ArticleService(BaseJob):
             order_by(desc(Article.publish_date)).\
             limit(10)
 
-        res =  q.all()
+        documents =  q.all()
 
-        return res;
+        results = [
+            {
+                "id": doc.id,
+                "title": doc.article.title,
+                "publishDate": doc.article.publish_date,
+                "theme": {
+                    "id": doc.theme_article_link[0].theme.id,
+                    "name": doc.theme_article_link[0].theme.name,
+                }
+            } for doc in documents
+        ];
+
+        return {'articles':results}

@@ -1,8 +1,15 @@
+from flask import Flask, request, jsonify
+from flask_restplus import Resource, Api
 
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql.expression import extract
 from sqlalchemy import func
+
+from datetime import datetime, timedelta
+import pandas as pd
+import numpy as np
+from typing import List
 
 from services.theme_extractor.base_job import BaseJob
 from services.libs.data_model.article import Article
@@ -12,37 +19,44 @@ from services.libs.data_model.theme import Theme
 from services.libs.data_model.theme_article_link import ThemeArticleLink
 from services.theme_extractor.logger import logger
 
+from .root_api import emerging_themes_ns as api
+from .theme_base import ThemeBase
+from .api_models import emerging_themes_field
 
-from datetime import datetime, timedelta
-import pandas as pd
-import numpy as np
-from typing import List
+@api.route('/emerging-themes')
+class EmergingThemes(Resource, ThemeBase):
 
-class EmergingThemeExtractor(BaseJob):
+    
+    @api.marshal_with(emerging_themes_field)
+    def get(self):
 
-    def __init__(self): 
-        super().__init__()
+        frequency = 'month'
 
 
-    def get_emerging_themes(self, frequency='month'):
-
-        theme_ids = self.__extract_emerging_themes_table(frequency);
-        # logger.info('Getting themes information from DB')
-        themes = self.__get_theme_information_from_db(theme_ids);
-        # logger.info('Themes information retrieved from DB')
-        return themes;
+        if 'frequency' in request.args:
+            frequency = request.args['frequency']
         
-    def get_theme(self, theme_ids: List[str]):
-        return self.__get_theme_information_from_db(theme_ids)
+        theme_ids = self.__extract_emerging_themes_table(frequency);
 
-    def __get_theme_information_from_db(self, theme_ids: List[int]):
+        themes = self.__get_theme_information_from_db(theme_ids);
+
+        print(themes[0])
+
+
+        # logger.info('Themes information retrieved from DB')
+        return {
+        'themes': themes
+        }
+
+    def __get_theme_information_from_db(self, theme_ids: dict):
         session: Session = self.get_session();
+
 
         subquery = session.query(Theme.id, Theme.name, Theme.theme_words, Article.id, Article.publish_date, Article.title, func.rank().over(
                 order_by=Article.publish_date.desc(),
                 partition_by=(Theme.article_load_id, Theme.id)
             ).label('rank')).\
-            filter(Theme.id.in_([int(id) for id in theme_ids])).\
+            filter(Theme.id.in_([int(rec) for rec in theme_ids.keys()])).\
             join(ThemeArticleLink).\
             join(ProcessedArticle).\
             join(Article).\
@@ -66,6 +80,8 @@ class EmergingThemeExtractor(BaseJob):
                     'id': theme[0],
                     'name': theme[1],
                     'keywords': theme[2],
+                    'articles_published_in_period': theme_ids[theme[0]]['num_articles'],
+                    'total_articles_published': theme_ids[theme[0]]['num_articles_sum'],
                     'articles': []
                 }
                 collated_themes.append(collated_theme)
@@ -122,12 +138,15 @@ class EmergingThemeExtractor(BaseJob):
         themes = np.unique(df['ThemeId'])
 
         avg_count = df.groupby('ThemeId').mean().reset_index()
+        
+        sum_count = df.groupby('ThemeId').sum().reset_index()
 
         df_with_avg = df.join(avg_count.set_index('ThemeId'), on='ThemeId', rsuffix='_avg')
+        df_with_avg = df_with_avg.join(sum_count.set_index('ThemeId'), on='ThemeId', rsuffix='_sum')
         df_with_avg['rel_count'] = df_with_avg['num_articles'] / df_with_avg['num_articles_avg']
         
         filtered_df = df_with_avg[df_with_avg[frequency] == yms[-1][1]][df_with_avg['year'] == yms[-1][0]][df_with_avg['rel_count'] > 1]
 
         # logger.info('Latest themes extrfacted')
 
-        return np.unique(filtered_df['ThemeId']).astype(int)
+        return filtered_df[['ThemeId', 'num_articles', 'num_articles_sum']].set_index('ThemeId').to_dict('index')
