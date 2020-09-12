@@ -1,0 +1,12 @@
+Steps required
+- loading data -easy
+- creating a new load id ?
+- running data processing 
+   - convert to HTML - easy
+   - phrase detection - medium
+   - POS tagging - easy
+- creating doc2vec model - medium
+- Clustering 
+  - dimension reduction - medium
+  - clustering algo - medium
+  - theme keyword extraction - hard   

@@ -16,26 +16,42 @@ class GuardianConnector:
     This method loads a history of guardian articles, and produces a new load id 
     '''
     def bulk_load_guardian_articles(self, max_pages=800):
+
+        loader = ArticleLoader()
+
+        load_session_id = loader.create_load_session()
+
+        self.__load_articles(load_session_id, loader, max_pages=max_pages)
+        
+        return load_session_id;
+
+    def update_guardian_articles(self, copy_load_id: str):
+
+        loader = ArticleLoader()
+
+        load_session_id, from_date = loader.copy_load_session(copy_load_id)
+
+        return self.__load_articles(load_session_id, loader, from_date)
+
+        
+    def __load_articles(self, load_session_id, loader: ArticleLoader, from_date=None, max_pages=800):
         page = 1
         virtual_page = page
         date_indent = None
         all_articles = []
         errors_in_a_row = 0
         bundle_size = 1 ##ceil(sqrt(max_pages))
-        reporting_bundle_size = 40
-        loader = ArticleLoader()
-
-        load_session_id = loader.create_load_session()
 
         last_time = None
 
-        while(page < max_pages and errors_in_a_row < 5):
+        stop = False;
+
+        while(page < max_pages and errors_in_a_row < 5 and not stop):
             
             try:  
                 all_articles += self.get_results(virtual_page, date_indent)
                 errors_in_a_row = 0
             except:
-                print('error downloading - wait then continue')
                 time.sleep(5)
                 errors_in_a_row += 1
                 virtual_page = 0
@@ -43,21 +59,19 @@ class GuardianConnector:
                 
             if len(all_articles) > 0:
                 last_time = all_articles[-1]['publish_date']
+                if from_date is not None and last_time < from_date:
+                    stop = True;
 
             
             if page % bundle_size == 0:
-                to_write = {
-                    'results': all_articles  
-                }
-
+ 
                 loader.insert_articles(all_articles, load_session_id);
 
                 all_articles = []
 
 
             page += 1
-            if page % reporting_bundle_size == 0:
-                print('{} articles downloaded!'.format(str(200 * page)))
+
             virtual_page += 1
 
         return load_session_id;
@@ -70,12 +84,6 @@ class GuardianConnector:
 
         # gets raw_response
         raw_content = content.get_request_response()
-        print("Request Response status code {status}.".format(status=raw_content.status_code))
-
-        if (raw_content.status_code != 200):
-            print("Error in request!")
-            print(content.get_content_response())
-            print(url)
 
         raw_content.json()
         # get all results of a page

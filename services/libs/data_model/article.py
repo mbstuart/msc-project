@@ -22,3 +22,8 @@ class Article(Base):
         self.source_tag = source_tag
         self.publish_date = publish_date
         self.article_load_id = article_load_id
+
+    def clone(self, load_id = None):
+
+        load_id = load_id if load_id is not None else self.article_load_id;
+        return Article(self.id, self.body, self.title, self.source_tag, self.publish_date, load_id)

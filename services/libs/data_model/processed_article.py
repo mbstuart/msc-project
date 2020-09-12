@@ -23,3 +23,12 @@ class ProcessedArticle(Base):
         self.article_load_id = article_load_id
         self.words = words
         self.title_words = title_words;
+
+    def clone(self, new_load_id: str)-> 'ProcessedArticle':
+        clone_pa = ProcessedArticle(
+            self.id,
+            new_load_id,
+            self.words,
+            self.title_words
+        )
+        return clone_pa;

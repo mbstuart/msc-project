@@ -33,7 +33,7 @@ class BaseJob:
     
     def get_latest_article_load(self) -> ArticleLoad:
         session: Session = self.get_session();
-        res = session.query(ArticleLoad).order_by(desc(ArticleLoad.start_time)).first() 
+        res = session.query(ArticleLoad).filter(active=True).order_by(desc(ArticleLoad.start_time)).first() 
         return res; 
 
     def __del__(self):

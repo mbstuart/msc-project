@@ -1,8 +1,9 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, desc
+from sqlalchemy.orm import sessionmaker, Session
 from services.libs.data_model.article import Article
 from services.libs.data_model.article_load import ArticleLoad
 from datetime import datetime
+
 
 class ArticleLoader:
 
@@ -35,3 +36,26 @@ class ArticleLoader:
             )
             session.merge(article_row);
         session.commit()
+
+    def copy_load_session(self, from_load_id):
+
+        session = self.get_session();
+
+        articles = session.query(Article).filter_by(article_load_id = from_load_id).order_by(desc(Article.publish_date)).all();
+
+        from_date = articles[0].publish_date
+
+        to_load_id = self.create_load_session();
+
+        session: Session = self.get_session();
+
+        for art in articles:
+            cloned_art = art.clone(load_id = to_load_id);
+            session.merge(cloned_art, load=False);
+        
+        session.commit()
+
+        
+
+        return to_load_id, from_date;
+

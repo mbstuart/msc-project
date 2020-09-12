@@ -51,15 +51,46 @@ class ThemeExtractor(BaseJob):
 
         logger.info('Full refresh of themes DB complete!')
 
+    def update_run(self, copy_load_id):
+        
+        logger.info('Starting update on {}'.format(copy_load_id))
+
+        logger.info('Step #1 - loading fresh bulk load of guardian articles')
+        load_id = self.update_articles(copy_load_id)
+        logger.info('Step #1 complete - load id {}'.format(load_id))
+        
+        logger.info('Step #2 - preprocess articles')
+        self.preprocess_articles_update(copy_load_id, load_id)
+        logger.info('Step #2 - complete')
+
+        logger.info('Step #3 - building Doc2Vec model')
+        model = self.update_wv_model(load_id)
+        logger.info('Step #3 - complete')
+
+        logger.info('Step #4 - create clusters (themes)')
+        self.create_themes(load_id, model, True)
+        logger.info('Step #4 - complete')
+
+        logger.info('Full refresh of themes DB complete!')
+
     def get_articles(self, max_pages=None):
         guardian_connector = GuardianConnector();
         max_pages = 800 if max_pages is None else max_pages;
-        load_id = guardian_connector.bulk_load_guardian_articles();
+        load_id = guardian_connector.bulk_load_guardian_articles(max_pages);
         return load_id
     
+    def update_articles(self, copy_load_id):
+        guardian_connector = GuardianConnector();
+        load_id = guardian_connector.update_guardian_articles(copy_load_id);
+        return load_id
+
+    def preprocess_articles_update(self, from_load_id, to_load_id):
+        article_preprocess_job = ArticlePreprocessJob();
+        article_preprocess_job.preprocess_articles_update(to_load_id, from_load_id);
+
     def preprocess_articles(self, load_id):
         article_preprocess_job = ArticlePreprocessJob();
-        article_preprocess_job.preprocess_latest_articles();
+        article_preprocess_job.preprocess_articles_for_load(load_id);
 
     def create_wv_model(self, load_id):
         wv_model_job = WVModelJob();
@@ -67,6 +98,11 @@ class ThemeExtractor(BaseJob):
         return model
 
     def load_wv_model(self, load_id):
+        wv_model_job = WVModelJob();
+        model = wv_model_job.get_model_from_disk(load_id);
+        return model
+
+    def update_wv_model(self, load_id):
         wv_model_job = WVModelJob();
         model = wv_model_job.get_model_from_disk(load_id);
         return model

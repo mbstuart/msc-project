@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from .base_model import Base
 import uuid
@@ -11,4 +11,5 @@ class ArticleLoad(Base):
 
     id = Column('Id', UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     start_time = Column('StartTime', DateTime, default=datetime.now)
+    active = Column('Active', Boolean, default=False)
 
