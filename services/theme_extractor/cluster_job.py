@@ -4,6 +4,7 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from services.libs.data_model.theme import Theme
 from services.libs.data_model.theme_article_link import ThemeArticleLink
 
+
 from .base_job import BaseJob
 from .clusterer import Clusterer
 from .article_preprocessor import ArticlePreprocessor
@@ -18,74 +19,91 @@ from typing import List
 from datetime import datetime
 from gensim.models import Doc2Vec
 
+import numpy as np
+
 
 class JointArticle:
 
     def __init__(self, id, publish_date, words, title, title_words):
-        self.id = id;
-        self.publish_date = publish_date;
-        self.words = words;
-        self.title = title;
-        self.title_words = title_words;
+        self.id = id
+        self.publish_date = publish_date
+        self.words = words
+        self.title = title
+        self.title_words = title_words
+
 
 class ClusterJob(BaseJob):
 
     def __init__(self, model: Doc2Vec, load_id: str):
-        super().__init__();
+        super().__init__()
 
-        self.model = model;
-        self.load_id = load_id;
-
+        self.model = model
+        self.load_id = load_id
 
     def get_clusters(self, from_scratch=False):
-        articles = self.filter_articles();
+        articles = self.filter_articles()
 
-        clusterer = Clusterer(self.model, articles, self.load_id, from_scratch=from_scratch, min_cluster_size=3, cluster_selection_epsilon=0.1)
+        clusterer = Clusterer(self.model, articles, self.load_id)
 
-        themes, mapping = clusterer.create_themes_and_mapping();
+        mapping = clusterer.create_themes_and_mapping(
+            from_scratch=from_scratch, min_cluster_size=3, cluster_selection_epsilon=0.1)
 
-        self.__persist_themes(themes)
-        self.__persist_theme_article_map(mapping, articles);
+        temp_themes = [Theme(int(theme_id), 'Temp-theme-{}'.format(theme_id),
+                             self.load_id, []) for theme_id in np.unique(mapping)]
 
-        return themes, mapping
+        self.__persist_themes(temp_themes)
+        self.__persist_theme_article_map(mapping, articles)
 
-    def __persist_themes(self, themes: List[Theme] ):
+        return mapping
 
-        session: Session = self.get_session();
+    def update_clusters(self, from_load_id, articles: List[ProcessedArticle]):
+
+        clusterer = Clusterer(self.model, articles, self.load_id)
+
+        mapping = clusterer.get_mapping_for_new_articles(from_load_id)
+
+        self.__persist_theme_article_map(mapping, articles)
+
+        return mapping
+
+    def __persist_themes(self, themes: List[Theme]):
+
+        session: Session = self.get_session()
 
         for theme in themes:
             session.merge(theme)
 
-        session.commit();
-
-
+        session.commit()
 
     def __persist_theme_article_map(self, theme_mapping, articles):
-        session: Session = self.get_session();
+        session: Session = self.get_session()
 
         for i, cluster_id in enumerate(theme_mapping):
-            article = articles[i];
-            theme_article_map = ThemeArticleLink(cluster_id, article.id, self.load_id)
+            article = articles[i]
+            theme_article_map = ThemeArticleLink(
+                cluster_id, article.id, self.load_id)
             session.merge(theme_article_map)
 
         session.commit()
 
-    def filter_articles(self, years = 10):
+    def filter_articles(self, years=10):
 
-        session: Session = self.get_session();
+        session: Session = self.get_session()
 
-        most_recent_date: datetime.datetime = session.query(Article).order_by(desc(Article.publish_date)).first().publish_date;
+        most_recent_date: datetime.datetime = session.query(
+            Article).order_by(desc(Article.publish_date)).first().publish_date
 
-        n_years_ago = most_recent_date.replace(year = most_recent_date.year - years)
+        n_years_ago = most_recent_date.replace(
+            year=most_recent_date.year - years)
 
         q = session.query(Article.id, Article.publish_date, ProcessedArticle.words, Article.title, ProcessedArticle.title_words).\
-        join(ProcessedArticle, and_(ProcessedArticle.id==Article.id, ProcessedArticle.article_load_id==Article.article_load_id))\
+            join(ProcessedArticle, and_(ProcessedArticle.id == Article.id, ProcessedArticle.article_load_id == Article.article_load_id))\
             .filter(Article.publish_date >= n_years_ago)\
             .filter(Article.article_load_id == self.load_id)\
             .order_by(desc(Article.publish_date))
-        articles = q.all();
+        articles = q.all()
 
-        articles = [JointArticle(art[0], art[1], art[2], art[3], art[4]) for art in articles]
+        articles = [JointArticle(
+            art[0], art[1], art[2], art[3], art[4]) for art in articles]
 
-        return articles;
-
+        return articles

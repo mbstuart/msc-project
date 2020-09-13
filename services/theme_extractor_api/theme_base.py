@@ -16,20 +16,23 @@ from services.theme_extractor.logger import logger
 
 class ThemeBase(BaseJob):
 
-    def __init__(self): 
+    def __init__(self):
         super().__init__()
-    
+
     def get_theme_information_from_db(self, theme_ids: List[int]):
-        session: Session = self.get_session();
+        session: Session = self.get_session()
+
+        load_id = self.get_latest_article_load().id
 
         subquery = session.query(Theme.id, Theme.name, Theme.theme_words, Article.id, Article.publish_date, Article.title, func.rank().over(
-                order_by=Article.publish_date.desc(),
-                partition_by=(Theme.article_load_id, Theme.id)
-            ).label('rank')).\
+            order_by=Article.publish_date.desc(),
+            partition_by=(Theme.id)
+        ).label('rank')).\
             filter(Theme.id.in_([int(id) for id in theme_ids])).\
             join(ThemeArticleLink).\
             join(ProcessedArticle).\
             join(Article).\
+            filter(Theme.article_load_id == load_id).\
             subquery()
 
         q = session.query(subquery).\
@@ -39,9 +42,9 @@ class ThemeBase(BaseJob):
 
         collated_themes: List[Theme] = []
 
-        last_theme_id = -1;
+        last_theme_id = -1
 
-        collated_theme: {} = None;
+        collated_theme: {} = None
 
         for theme in themes:
             if theme[0] != last_theme_id:
@@ -63,6 +66,5 @@ class ThemeBase(BaseJob):
                     'name': theme[1],
                 }
             })
-
 
         return collated_themes

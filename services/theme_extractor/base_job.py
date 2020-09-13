@@ -9,36 +9,37 @@ from services.libs.db_connection.session import get_session
 
 from typing import List
 
+
 class BaseJob:
 
     session: Session
 
     made_session: False
 
-    def __init__(self, session = None):
+    def __init__(self, session=None):
 
-        self.session = session;
+        self.session = session
         if session is None:
             self.made_session = True
-            self.session = get_session();
+            self.session = get_session()
 
     def get_session(self):
 
         if not hasattr(self, 'session'):
             self.made_session = True
-            self.session = get_session(); 
+            self.session = get_session()
 
         session = self.session
-        return session;
-    
+        return session
+
     def get_latest_article_load(self) -> ArticleLoad:
-        session: Session = self.get_session();
-        res = session.query(ArticleLoad).filter(active=True).order_by(desc(ArticleLoad.start_time)).first() 
-        return res; 
+        session: Session = self.get_session()
+        res = session.query(ArticleLoad).filter_by(
+            active=True).order_by(desc(ArticleLoad.start_time)).first()
+        return res
 
     def __del__(self):
-        print('in destructor');
+        print('in destructor')
         if self.made_session:
-            print('deleting session');
+            print('deleting session')
             self.session.close()
-

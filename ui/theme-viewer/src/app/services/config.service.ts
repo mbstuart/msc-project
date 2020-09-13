@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 })
 export class ConfigService {
 
-  public dataURL = 'http://localhost:5000'
+  public dataURL = 'http://localhost:5000/api'
 
   constructor() { }
 
