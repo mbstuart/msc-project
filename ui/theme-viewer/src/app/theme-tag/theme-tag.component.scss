@@ -34,6 +34,9 @@ $colors: (
 
     padding: 5px;
     border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    text-align: center;
 
     @each $colorname, $color in $colors {
         &.color-#{$colorname} {

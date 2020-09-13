@@ -17,11 +17,7 @@ export class LatestArticlesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.dataService.getLatestArticles()
-      .pipe(tap(res => {
-        this.articles = res.articles
-      }))
-      .subscribe()
+
   }
 
 

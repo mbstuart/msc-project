@@ -16,24 +16,33 @@ from services.libs.data_model.theme_article_link import ThemeArticleLink
 from .root_api import articles_ns as api
 from .api_models import articles_field
 
+
 @api.route('/articles')
 class ArticleApi(Resource, BaseJob):
 
-    
     @api.marshal_with(articles_field)
     def get(self):
 
-        load_id = self.get_latest_article_load().id;
+        load_id = self.get_latest_article_load().id
 
-        session: Session = self.get_session();
+        page_num = 0
+        if 'page_num' in request.args:
+            page_num = int(request.args['page_num']) - 1
+
+        page_size = 10
+        if 'page_size' in request.args:
+            page_size = int(request.args['page_size'])
+
+        session: Session = self.get_session()
 
         q = session.query(ProcessedArticle).\
             join(Article).\
-            filter_by(article_load_id = load_id).\
+            filter_by(article_load_id=load_id).\
             order_by(desc(Article.publish_date)).\
-            limit(10)
+            offset(page_num * page_size).\
+            limit(page_size)
 
-        documents =  q.all()
+        documents = q.all()
 
         results = [
             {
@@ -45,6 +54,6 @@ class ArticleApi(Resource, BaseJob):
                     "name": doc.theme_article_link[0].theme.name,
                 }
             } for doc in documents
-        ];
+        ]
 
-        return {'articles':results}
+        return {'articles': results}

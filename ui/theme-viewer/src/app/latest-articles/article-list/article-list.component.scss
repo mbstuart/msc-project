@@ -2,6 +2,8 @@
 
 .row {
 
+    margin: 0;
+
     > .title {
         flex: 3;
     }
@@ -13,4 +15,8 @@
     > .publish-date {
         flex: 1
     }
+}
+
+cdk-virtual-scroll-viewport {
+    flex: 1
 }

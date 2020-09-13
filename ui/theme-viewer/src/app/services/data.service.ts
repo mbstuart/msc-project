@@ -26,8 +26,8 @@ export class DataService {
     private readonly config: ConfigService
   ) { }
 
-  public getLatestArticles(n = 10): Observable<{ articles: Article[] }> {
-    return this.get(`/articles`) as Observable<{ articles: Article[] }>
+  public getLatestArticles(pageSize, pageNum = 1): Observable<{ articles: Article[] }> {
+    return this.get(`/articles?page_num=${pageNum}&page_size=${pageSize}`) as Observable<{ articles: Article[] }>
   }
 
   public getEmergingThemes() {

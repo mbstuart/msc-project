@@ -1,11 +1,13 @@
-<div class="row" [class.even]="(i % 2) === 0" *ngFor="let article of articles; let i = index">
-    <div class="title">
-        {{article.title}}
+<cdk-virtual-scroll-viewport itemSize="50">
+    <div class="row" [class.even]="(i % 2) === 0" *cdkVirtualFor="let article of source ; let i = index">
+        <div class="title">
+            {{article.title}}
+        </div>
+        <div class="theme">
+            <app-theme-tag [theme]="article.theme"></app-theme-tag>
+        </div>
+        <div class="publish-date">
+            {{article.publishDate | themeDate }}
+        </div>
     </div>
-    <div class="theme">
-        <app-theme-tag [theme]="article.theme"></app-theme-tag>
-    </div>
-    <div class="publish-date">
-        {{article.publishDate | themeDate }}
-    </div>
-</div>
+</cdk-virtual-scroll-viewport>

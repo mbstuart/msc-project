@@ -1,6 +1,8 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ElementRef } from '@angular/core';
 import { Article } from 'src/app/models/article';
 import { ThemeService } from 'src/app/services/theme.service';
+import { DataService } from 'src/app/services/data.service';
+import { ArticlesDataSource } from './articles-data-source';
 
 @Component({
   selector: 'app-article-list',
@@ -9,14 +11,27 @@ import { ThemeService } from 'src/app/services/theme.service';
 })
 export class ArticleListComponent {
 
-  @Input() articles: Article[];
-  
-  constructor(
-    private readonly themeService: ThemeService
-  ) { }
+  // @Input() articles: Article[];
 
-  getColorForTheme({id}: {id: number}) {
-    return this.themeService.getColorForTheme({id})
+  source: ArticlesDataSource;
+
+  constructor(
+    private readonly themeService: ThemeService,
+    private readonly dataService: DataService,
+    private readonly element: ElementRef
+  ) {
+    this.source = new ArticlesDataSource(this.dataService)
+  }
+
+  ngAfterViewInit() {
+    const el: HTMLElement = this.element.nativeElement;
+    const parentHeight = el.parentElement.offsetHeight;
+
+
+  }
+
+  getColorForTheme({ id }: { id: number }) {
+    return this.themeService.getColorForTheme({ id })
   }
 
 

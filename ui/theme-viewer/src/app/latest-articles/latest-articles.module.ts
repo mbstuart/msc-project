@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LatestArticlesComponent } from './latest-articles.component';
 import { ArticleListModule } from './article-list/article-list.module';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 
 
@@ -9,7 +10,8 @@ import { ArticleListModule } from './article-list/article-list.module';
   declarations: [LatestArticlesComponent],
   imports: [
     CommonModule,
-    ArticleListModule
+    ArticleListModule,
+    ScrollingModule
   ],
   exports: [
     LatestArticlesComponent
