@@ -4,7 +4,8 @@ import { ConfigService } from './config.service';
 import { Article } from '../models/article';
 import { Observable, of, Subject, timer, ReplaySubject } from 'rxjs';
 import { Theme } from '../models/theme';
-import { switchMap, tap, first } from 'rxjs/operators';
+import { switchMap, tap, first, catchError } from 'rxjs/operators';
+import { ArticleLoad } from '../models/article-load';
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +38,11 @@ export class DataService {
     return this.get(`/themes/${themeId}`, 60) as Observable<Theme>
   }
 
-  get(url: string, cacheTime?: number) {
+  public getArticleLoad() {
+    return this.get(`/article-load`, 60) as Observable<ArticleLoad>
+  }
+
+  private get(url: string, cacheTime?: number) {
 
     if (!cacheTime) {
       return this.httpClient.get(`${this.config.dataURL}${url}`)
@@ -71,7 +76,12 @@ export class DataService {
                     })
                     result$.next(response);
                   }
-                )
+                ),
+                catchError(err => {
+                  expiry$.next(true);
+                  result$.next(null);
+                  throw err;
+                })
               )
           } else {
             return this.cache[url].response.pipe(first());

@@ -1,32 +1,41 @@
 <nav class="nav-bar-root">
   <div class="nav-wrapper">
-    <div class="title">
-      Theme Viewer
+    <div class="menu-top">
+      <div class="title">
+        Theme Viewer
+      </div>
+      <div class="tabs">
+        <div class="tab" routerLink="/articles" routerLinkActive="active">
+          <div class="icon-container">
+            <fa-icon [icon]="articleIcon"></fa-icon>
+          </div>
+          <span>
+            Articles
+          </span>
+
+        </div>
+        <div class="tab" routerLink="/themes" routerLinkActive="active">
+          <div class="icon-container">
+            <fa-icon [icon]="themeIcon"></fa-icon>
+          </div>
+          <span>
+            Themes
+          </span>
+
+        </div>
+      </div>
     </div>
-    <div class="tabs" >
-      <div class="tab" routerLink="/articles" routerLinkActive="active" >
-        <div class="icon-container">
-          <fa-icon [icon]="articleIcon"></fa-icon>
-        </div>
-        <span>
-          Articles
-        </span>
-        
+    <div class="menu-bottom">
+      <div *ngIf="articleLoad" class="load-info">
+        Data loaded:
+        {{articleLoad.startTime | date:'medium'}}
       </div>
-      <div class="tab" routerLink="/themes" routerLinkActive="active" >
-        <div class="icon-container">
-          <fa-icon [icon]="themeIcon"></fa-icon>
-        </div>
-        <span>
-          Themes
-        </span>
-        
-      </div>
-  </div>
+    </div>
+
   </div>
 </nav>
 
 <div class="root-component">
-  <router-outlet ></router-outlet>
+  <router-outlet></router-outlet>
 
 </div>

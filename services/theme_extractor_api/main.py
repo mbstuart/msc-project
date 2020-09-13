@@ -11,21 +11,19 @@ from services.libs.data_model.processed_article import ProcessedArticle
 from typing import List
 
 
-
 from .root_api import api
 
 from .theme_api import Theme
 from .emerging_theme_api import EmergingThemes
 from .data_loader_api import DataLoader
 from .article_api import ArticleApi
+from .load_api import LoadApi
 
 import jsonpickle
 
 app = Flask(__name__)
 CORS(app)
 api.init_app(app)
-
-
 
 
 if __name__ == 'services.theme_extractor_api.main':
