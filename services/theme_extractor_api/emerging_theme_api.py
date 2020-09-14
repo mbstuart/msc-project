@@ -17,7 +17,7 @@ from services.libs.data_model.article_load import ArticleLoad
 from services.libs.data_model.processed_article import ProcessedArticle
 from services.libs.data_model.theme import Theme
 from services.libs.data_model.theme_article_link import ThemeArticleLink
-from services.theme_extractor.logger import logger
+from services.libs.utils import logger
 
 from .root_api import emerging_themes_ns as api
 from .theme_base import ThemeBase

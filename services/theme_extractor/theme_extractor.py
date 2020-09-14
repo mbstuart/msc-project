@@ -1,8 +1,9 @@
 from .base_job import BaseJob
 from services.data_extractor.guardian_connector import GuardianConnector
 
+from services.libs.data_model import ArticleLoad
 
-from .logger import logger
+from services.libs.utils import logger
 from .article_preprocess_job import ArticlePreprocessJob
 from .wv_model_job import WVModelJob
 from .cluster_job import ClusterJob
@@ -10,6 +11,8 @@ from .cluster_job import ClusterJob
 from .keyword_extraction_job import KeywordExtractionJob
 
 from typing import List
+
+from sqlalchemy.orm import Session
 
 
 class ThemeExtractor(BaseJob):
@@ -63,6 +66,8 @@ class ThemeExtractor(BaseJob):
             logger.info('Step #5 - extracting theme keywords complete')
         logger.info('Full refresh of themes DB complete!')
 
+        self.activate_run(load_id)
+
     def update_run(self, from_load_id):
 
         logger.info('Starting update on {}'.format(from_load_id))
@@ -73,19 +78,25 @@ class ThemeExtractor(BaseJob):
         logger.info('Step #1 complete - load id {}'.format(load_id))
 
         logger.info('Step #2 - preprocess articles')
-        new_articles = self.preprocess_articles_update(
+        self.preprocess_articles_update(
             from_load_id, load_id)
         logger.info('Step #2 - complete')
 
         logger.info('Step #3 - building Doc2Vec model')
-        model = self.update_wv_model(from_load_id, load_id, new_articles)
+        model = self.create_wv_model(load_id)
         logger.info('Step #3 - complete')
 
         logger.info('Step #4 - create clusters (themes)')
-        self.update_themes(load_id, model, from_load_id, new_articles)
+        self.create_themes(load_id, model, True)
         logger.info('Step #4 - complete')
 
+        logger.info('Step #5 - extracting theme keywords')
+        self.get_theme_keywords(load_id, model)
+        logger.info('Step #5 - extracting theme keywords complete')
+
         logger.info('Full refresh of themes DB complete!')
+
+        self.activate_run(load_id)
 
     def get_articles(self, max_pages=None):
         guardian_connector = GuardianConnector()
@@ -134,3 +145,13 @@ class ThemeExtractor(BaseJob):
     def get_theme_keywords(self, load_id, model):
         kej = KeywordExtractionJob()
         kej.extract_keywords_from_labels(load_id, model)
+
+    def activate_run(self, load_id):
+        sess: Session = self.get_session()
+
+        load: ArticleLoad = sess.query(ArticleLoad).filter(
+            ArticleLoad.id == load_id).first()
+
+        load.active = True
+
+        sess.commit()

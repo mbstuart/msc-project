@@ -31,6 +31,7 @@ class WVModelBuilder:
         model = Doc2Vec(vector_size=vec_size,
                         workers=self.cores,
                         min_count=5,
+                        epochs=20,
                         dm=1)
 
         model.build_vocab(tagged_data)

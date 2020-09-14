@@ -45,7 +45,7 @@ class ClusterJob(BaseJob):
 
         clusterer = Clusterer(self.model, articles, self.load_id)
 
-        mapping = clusterer.create_themes_and_mapping(
+        mapping = clusterer.create_mapping(
             from_scratch=from_scratch, min_cluster_size=3, cluster_selection_epsilon=0.1)
 
         temp_themes = [Theme(int(theme_id), 'Temp-theme-{}'.format(theme_id),

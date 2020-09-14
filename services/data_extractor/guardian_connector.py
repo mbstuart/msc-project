@@ -4,6 +4,8 @@ from datetime import datetime
 from .guardian_content import Content
 from .article_loader import ArticleLoader
 
+from services.libs.utils.logger import logger
+
 import time
 import json
 from math import sqrt, floor, ceil
@@ -31,7 +33,12 @@ class GuardianConnector:
 
         loader = ArticleLoader()
 
+        logger.info('Starting copying articles to {}'.format(copy_load_id))
+
         load_session_id, from_date = loader.copy_load_session(copy_load_id)
+
+        logger.info('Articles copied from {} to {}'.format(
+            copy_load_id, load_session_id))
 
         return self.__load_articles(load_session_id, loader, from_date)
 
@@ -42,6 +49,8 @@ class GuardianConnector:
         all_articles = []
         errors_in_a_row = 0
         bundle_size = 1  # ceil(sqrt(max_pages))
+
+        reporting_page = 20
 
         last_time = None
 
@@ -69,6 +78,10 @@ class GuardianConnector:
                 loader.insert_articles(all_articles, load_session_id)
 
                 all_articles = []
+
+            if page % reporting_page == 0:
+                logger.info(
+                    '{} pages of data downloaded so far, date is {}'.format(page, last_time))
 
             page += 1
 
