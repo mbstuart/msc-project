@@ -2,6 +2,9 @@
 /models
 /clusters
 /preprocess
+/notebooks/models
+/notebooks/clusters
+/notebooks/preprocess
 *.log
 text_rank/__init__.py
 text_rank/graph.py

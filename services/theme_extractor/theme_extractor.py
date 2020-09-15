@@ -4,11 +4,10 @@ from services.data_extractor.guardian_connector import GuardianConnector
 from services.libs.data_model import ArticleLoad
 
 from services.libs.utils import logger
-from .article_preprocess_job import ArticlePreprocessJob
-from .wv_model_job import WVModelJob
-from .cluster_job import ClusterJob
-
-from .keyword_extraction_job import KeywordExtractionJob
+from services.theme_extractor.preprocessing import ArticlePreprocessJob
+from services.theme_extractor.wv_model import WVModelJob
+from services.theme_extractor.clustering import ClusterJob
+from services.theme_extractor.keyword_extraction import KeywordExtractionJob
 
 from typing import List
 

@@ -1,5 +1,5 @@
 from .keyword_extractor import KeywordExtractor
-from .base_job import BaseJob
+from services.theme_extractor.base_job import BaseJob
 
 from typing import List
 

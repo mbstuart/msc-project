@@ -1,12 +1,10 @@
-from services.libs.data_model.article import Article
-from services.libs.data_model.article_load import ArticleLoad
-from services.libs.data_model.processed_article import ProcessedArticle
+from services.libs.data_model import Article, ArticleLoad, ProcessedArticle
 
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine, desc, inspect
 
 from .article_preprocessor import ArticlePreprocessor
-from .base_job import BaseJob
+from services.theme_extractor.base_job import BaseJob
 
 from typing import List
 
@@ -27,19 +25,23 @@ class ArticlePreprocessJob(BaseJob):
     def preprocess_articles_for_load(self, load_id: str):
         articles = self.get_articles_for_load(load_id)
         preprocessed_articles = self.preprocess_raw_articles(articles, load_id)
-        self.commit_preprocessed_articles_to_database(load_id, preprocessed_articles)
+        self.commit_preprocessed_articles_to_database(
+            load_id, preprocessed_articles)
 
     def preprocess_articles_update(self, load_id: str, from_load_id: str):
         articles = self.get_articles_for_update(load_id, from_load_id)
         preprocessed_articles = self.preprocess_raw_articles_update(
             articles, from_load_id, load_id)
         self.clone_preprocessed_articles_to_new_load_id(from_load_id, load_id)
-        self.commit_preprocessed_articles_to_database(load_id, preprocessed_articles)
+        self.commit_preprocessed_articles_to_database(
+            load_id, preprocessed_articles)
         return preprocessed_articles
 
-    def get_articles_for_load(self, load_id: str) -> List[Article]:
+    def get_articles_for_load(self, load_id: str, max_articles=None) -> List[Article]:
         session: Session = self.get_session()
         query = session.query(Article).filter_by(article_load_id=load_id)
+        if max_articles is not None:
+            query = query.limit(max_articles)
         articles = query.all()
         return articles
 

@@ -37,9 +37,3 @@ class BaseJob:
         res = session.query(ArticleLoad).filter_by(
             active=True).order_by(desc(ArticleLoad.start_time)).first()
         return res
-
-    def __del__(self):
-        print('in destructor')
-        if self.made_session:
-            print('deleting session')
-            self.session.close()

@@ -1,13 +1,7 @@
-from services.libs.data_model.article import Article
-from services.libs.data_model.article_load import ArticleLoad
-from services.libs.data_model.processed_article import ProcessedArticle
-from services.libs.data_model.theme import Theme
-from services.libs.data_model.theme_article_link import ThemeArticleLink
+from services.libs.data_model import Article, ArticleLoad, ProcessedArticle, Theme, ThemeArticleLink
 
-
-from .base_job import BaseJob
+from services.theme_extractor.base_job import BaseJob
 from .clusterer import Clusterer
-from .article_preprocessor import ArticlePreprocessor
 
 
 from sqlalchemy.orm import sessionmaker, Session

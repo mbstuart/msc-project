@@ -9,7 +9,7 @@ import numpy as np
 from typing import List
 import os
 
-from services.libs.data_model.processed_article import ProcessedArticle
+from services.libs.data_model import ProcessedArticle
 
 from sklearn.cluster import AgglomerativeClustering
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
@@ -43,6 +43,9 @@ class Clusterer():
         self.model = model
         self.processed_articles = processed_articles
         self.load_id = load_id
+
+        if not(os.path.isdir(self.__CLUSTER_FOLDER)):
+            os.mkdir(self.__CLUSTER_FOLDER)
 
     def create_mapping(self, from_scratch=False, min_cluster_size=5, min_samples=2, cluster_selection_epsilon=0.5):
 

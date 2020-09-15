@@ -1,12 +1,11 @@
-from services.libs.data_model.processed_article import ProcessedArticle
-from services.libs.data_model.wv_model import WVModel
+from services.libs.data_model import ProcessedArticle
 
 
 from .wv_model_builder import WVModelBuilder
 
 from typing import List
 from uuid import UUID, uuid4
-from .base_job import BaseJob
+from services.theme_extractor  .base_job import BaseJob
 from sqlalchemy.orm import Session
 from gensim.models import Doc2Vec
 import os
@@ -14,12 +13,16 @@ import os
 
 class WVModelJob(BaseJob):
 
+    __MODEL_FOLDER = 'models'
+
     def __init__(self):
 
         super().__init__()
 
         self.wv_model_builder = WVModelBuilder()
 
+        if not(os.path.isdir(self.__MODEL_FOLDER)):
+            os.mkdir(self.__MODEL_FOLDER)
         # Something
         #
 
@@ -42,7 +45,7 @@ class WVModelJob(BaseJob):
         return model
 
     def get_model_from_disk(self, load_id: UUID) -> Doc2Vec:
-        model_dir = "models/{}".format(load_id)
+        model_dir = "{}/{}".format(self.__MODEL_FOLDER, load_id)
         model = Doc2Vec.load(os.path.join(model_dir, "doc.model"))
         return model
 
@@ -63,6 +66,6 @@ class WVModelJob(BaseJob):
         return articles
 
     def __persist_model(self, model: Doc2Vec, load_id: UUID):
-        dir_name = "models/{}".format(load_id)
+        dir_name = "{}/{}".format(self.__MODEL_FOLDER, load_id)
         os.mkdir(dir_name)
         model.save("{}/doc.model".format(dir_name))
