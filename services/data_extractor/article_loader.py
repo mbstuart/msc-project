@@ -6,6 +6,8 @@ from datetime import datetime
 
 from services.libs.utils import logger
 
+from typing import List
+
 
 class ArticleLoader:
 
@@ -24,19 +26,11 @@ class ArticleLoader:
 
         return load.id
 
-    def insert_articles(self, article_list, load_id):
+    def insert_articles(self, article_list: List[Article], load_id):
         session = self.get_session()
 
         for article in article_list:
-            article_row = Article(
-                article['id'],
-                article['body'],
-                article['title'],
-                article['source_tag'],
-                article['publish_date'],
-                load_id
-            )
-            session.merge(article_row)
+            session.merge(article)
         session.commit()
 
     def copy_load_session(self, from_load_id):

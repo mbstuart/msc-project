@@ -1,2 +1,2 @@
-from .keyword_extraction_job import KeywordExtractionJob
+from .keyword_extraction_job import KeywordExtractionJob, JointArticle
 from .keyword_extractor import KeywordExtractor

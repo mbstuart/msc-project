@@ -23,7 +23,7 @@ class BaseJob:
             self.made_session = True
             self.session = get_session()
 
-    def get_session(self):
+    def get_session(self) -> Session:
 
         if not hasattr(self, 'session'):
             self.made_session = True

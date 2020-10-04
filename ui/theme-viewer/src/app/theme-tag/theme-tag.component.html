@@ -1,5 +1,5 @@
-<div [ngbPopover]="popContent" popoverClass="theme-popover" container="body" [popoverTitle]="theme.name" #p="ngbPopover"
-    (mouseover)="p.open()" (mouseleave)="p.close()" triggers="manual">
+<div [ngbPopover]="popContent" popoverClass="theme-popover" [popoverTitle]="theme.name" #p="ngbPopover"
+    (mouseover)="p.open()" triggers="manual">
     <span class="name" *ngIf="theme && theme.id > -1" class="theme-badge" [ngClass]="getColorForTheme(theme)">
         {{theme.name}}
     </span>

@@ -36,7 +36,7 @@ class KeywordExtractionJob(BaseJob):
         return themes
 
     def extract_keywords_from_labels(self, load_id: str, model: Doc2Vec):
-        articles, mapping = self.__get_articles_for_load_id(load_id)
+        articles, mapping = self.get_articles_for_load_id(load_id)
 
         extractor = KeywordExtractor(model)
 
@@ -56,7 +56,7 @@ class KeywordExtractionJob(BaseJob):
 
         session.commit()
 
-    def __get_articles_for_load_id(self, load_id: str):
+    def get_articles_for_load_id(self, load_id: str):
         session: Session = self.get_session()
 
         q = session.query(Article.id, Article.publish_date, ProcessedArticle.words, Article.title, ProcessedArticle.title_words, Theme.id).\
