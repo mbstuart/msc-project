@@ -56,7 +56,7 @@ class GuardianConnector:
         date_indent = None
         all_articles: List[Article] = []
         errors_in_a_row = 0
-        bundle_size = ceil(sqrt(max_pages))
+        bundle_size = min(1, floor(sqrt(max_pages)))
 
         reporting_page = 20
 

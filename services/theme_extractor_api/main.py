@@ -27,4 +27,4 @@ api.init_app(app)
 
 
 if __name__ == 'services.theme_extractor_api.main':
-    app.run(debug=True, use_reloader=True)
+    app.run(debug=False, use_reloader=False)

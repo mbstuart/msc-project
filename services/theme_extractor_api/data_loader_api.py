@@ -32,7 +32,7 @@ class DataLoader(Resource):
         max_pages = None
 
         if 'max-pages' in request.args:
-            max_pages = request.args['max-pages']
+            max_pages = int(request.args['max-pages'])
 
         theme_extractor.start_fresh_run(from_stage, load_id, max_pages)
 
