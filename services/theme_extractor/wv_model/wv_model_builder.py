@@ -4,10 +4,21 @@ from services.libs.data_model import ProcessedArticle
 
 
 class WVModelBuilder:
+    """
+    Class responsible for building the word/document vector model
+    """
 
     cores = 4
 
     def build_wv_model(self, processed_articles: List[ProcessedArticle]):
+        """
+        Build the vector model from scratch.
+
+        Parameters:
+        - processed_articles: List of processed articles to use for the processing
+        Returns:
+        - Doc2Vec model
+        """
         tagged_docs = [self.__get_tagged_doc(article) for article in processed_articles] + [
             self.__get_tagged_doc_title(article) for article in processed_articles]
         model = self.__build_model(tagged_docs)

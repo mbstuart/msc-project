@@ -19,6 +19,11 @@ class ThemeExtractor(BaseJob):
     def __init__(self):
         super().__init__()
 
+    # this method starts a fresh load of data into the system
+    # params:
+    # from_stage - used to resume the run from an intermediate stage if it needs to be re-run
+    # load_id - existing load_id to use (will generate new one if not specified). Required if from_stage is anything greater than 0
+    # max_pages - max pages of source data to load
     def start_fresh_run(self, from_stage=0, load_id=None, max_pages=None):
 
         if from_stage == 0:

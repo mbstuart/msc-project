@@ -38,6 +38,7 @@ class ArticlePreprocessJob(BaseJob):
         return preprocessed_articles
 
     def get_articles_for_load(self, load_id: str, max_articles=None) -> List[Article]:
+        """Get the articles from source for the load_id"""
         session: Session = self.get_session()
         query = session.query(Article).filter_by(article_load_id=load_id)
         if max_articles is not None:

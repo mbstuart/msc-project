@@ -28,6 +28,13 @@ nlp = en_core_web_sm.load(disable=['ner', 'parser'])
 
 
 class Clusterer():
+    """
+    Class for clustering the document vectors
+    Parameters:
+    - model: Doc2Vec model
+    - processed_articles: The articles which are to be clustered
+    - load_id: the load_id for this particular load
+    """
 
     __CLUSTER_FOLDER = 'clusters'
 
@@ -48,6 +55,14 @@ class Clusterer():
             os.mkdir(self.__CLUSTER_FOLDER)
 
     def create_mapping(self, from_scratch=False, min_cluster_size=5, min_samples=2, cluster_selection_epsilon=0.5):
+        """
+        Create a mapping from articles to clusters
+        Parameters:
+         - from_scratch = run without using any cached clustering data
+         - min_cluster_size = the smallest size of cluster that can be produced by the system
+         - min_samples = hyperparameter used by HDBSCAN, determines how conservative the clustering is
+         - cluster_selection_epsilon = hyperparameter used by HDBSCAN, determines how close two clusters can be before they are force merged
+        """
 
         if self.__model_is_saved() and not(from_scratch):
             logger.info('Loading HDBSCAN model from files')

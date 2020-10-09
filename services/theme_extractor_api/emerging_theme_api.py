@@ -41,8 +41,6 @@ class EmergingThemes(Resource, ThemeBase):
 
         themes = self.__get_theme_information_from_db(load_id, theme_ids)
 
-        print(themes[0])
-
         # logger.info('Themes information retrieved from DB')
         return {
             'themes': themes

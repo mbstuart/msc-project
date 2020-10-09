@@ -21,6 +21,16 @@ RUN_OPTIONS = [
 
 
 class ArticlePreprocessor:
+    """
+    Class responsible for preprocessing the articles. 
+
+    Takes the following parameters:
+    - steps: the number of steps to run. By default runs HTML tagging, lemmatization, pos tag filtering and phrasing.
+    - allowed_pos_tags: the POS tags to filter by 
+    - html_stripper: the HTML stripper object to use. Used for DI/unit testing
+    - pos_lemma: the POS tagger / lemmatizer object to use. Used for DI/unit testing
+    - phrase_extractor: the Phrase extractor object to use. Used for DI/unit testing
+    """
 
     def __init__(self, steps=RUN_OPTIONS, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV', 'PROPN'], html_stripper=None, pos_lemma=None, phrase_extractor=None):
         self.steps = steps
@@ -32,23 +42,33 @@ class ArticlePreprocessor:
         ) if phrase_extractor is None else phrase_extractor
 
     def preprocess_articles(self, articles: List[Article], load_id: str) -> List[ProcessedArticle]:
-        return self.__get_tagged_data_fresh(articles, load_id)
+        return self.__get_preprocessed_articles_fresh(articles, load_id)
 
     def preprocess_articles_update(self, articles: List[Article], old_load_id: str, new_load_id: str) -> List[ProcessedArticle]:
-        return self.__get_tagged_data_update(articles, old_load_id, new_load_id)
+        return self.__get_preprocessed_articles_update(articles, old_load_id, new_load_id)
 
-    def __get_tagged_data_fresh(self, articles: List[Article], load_id: str) -> List[ProcessedArticle]:
-        return self.__get_tagged_data(articles, load_id)
+    def __get_preprocessed_articles_fresh(self, articles: List[Article], load_id: str) -> List[ProcessedArticle]:
+        return self.__get_preprocessed_articles(articles, load_id)
 
-    def __get_tagged_data_update(self, articles: List[Article], old_load_id: str, new_load_id: str):
-        return self.__get_tagged_data(articles, new_load_id, old_load_id=old_load_id)
+    def __get_preprocessed_articles_update(self, articles: List[Article], old_load_id: str, new_load_id: str):
+        return self.__get_preprocessed_articles(articles, new_load_id, old_load_id=old_load_id)
 
-    def __get_tagged_data(self, articles: List[Article], new_load_id: str, old_load_id: str = None):
-        logger.info('Getting tagged data')
+    def __get_preprocessed_articles(self, articles: List[Article], new_load_id: str, old_load_id: str = None):
+        """
+        Takes in articles as a parameter and runs preprocessing on them, returning the processed versions
+        Parameters:
+        - articles - the list of articles (titles + bodies)
+        - new_load_id - the load_id for this run
+        - old_load_id - their previous load_id, in case this is an update run
+
+        """
+        logger.info('Stripping HTML tags from the article bodies.')
         self.texts = self.html_stripper.strip_html(articles)
         self.titles = [art.title for art in articles]
-
         logger.info('Extracted from HTML')
+
+        logger.info(
+            'Applying POS-tag filtering and lemmatization to the documents')
         self.preprocessed_docs = self.pos_lemma.pos_tag_docs(self.texts, allowed_postags=self.allowed_postags, lemmatize=(
             RUN_LEMMATIZATION in self.steps), postag=(RUN_POS_TAGGING in self.steps))
         logger.info('Docs preprocessed and tokenized')
