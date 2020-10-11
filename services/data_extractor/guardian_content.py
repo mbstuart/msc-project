@@ -1,3 +1,7 @@
+
+# Forked from https://github.com/prabhath6/theguardian-api-python
+
+
 """
 The content endpoint (/search) returns
 all pieces of content in the API.
@@ -8,6 +12,7 @@ import copy
 param_subs = {
     "api-key"
 }
+
 
 class Content:
 
@@ -35,10 +40,8 @@ class Content:
         if kwargs:
             for key, value in kwargs.items():
                 self.__headers[key] = value
-                
 
     def __response(self, headers=None):
-
         """
         :param headers: optional header
         :return: returns raw response.
@@ -54,7 +57,6 @@ class Content:
         return res
 
     def get_request_response(self, headers=None):
-
         """
         :param headers: optional headers
         :return: raw request response
@@ -64,7 +66,6 @@ class Content:
         return self.__request_response
 
     def get_content_response(self, headers=None):
-
         """
         :param headers: optional header
         :return: json content of the response for the request
@@ -74,7 +75,6 @@ class Content:
         return self.__request_response.json()
 
     def response_headers(self, headers=None):
-
         """
         :param headers: optional header
         :return: dict of header contents in the response
@@ -92,7 +92,6 @@ class Content:
         return headers_content
 
     def find_by_id(self, ids, **kwargs):
-
         """
         :param ids: Get the Content using its id. IDs are usually in the form
         of url/section/YYYY/month/DD/name-of-article/
@@ -108,7 +107,6 @@ class Content:
 
     @staticmethod
     def __response_for_id(ids, **kwargs):
-
         """
         :param ids: IDs are usually in the form
         of url/section/YYYY/month/DD/name-of-article/
@@ -127,7 +125,6 @@ class Content:
 
     @staticmethod
     def get_results(content):
-
         """
         :param content: response from url
         :return: list of results
@@ -141,7 +138,6 @@ class Content:
         return results if results else []
 
     def get_references_in_page(self, page_number=None):
-
         """
         :param page_number: optional
         :return:
@@ -170,12 +166,12 @@ class Content:
 
     @staticmethod
     def __get_references(results):
-
         """
         :param results: list of results
         :return: list of results
         """
 
-        refs = [(result["id"], result["references"]) for result in results if result["references"]]
+        refs = [(result["id"], result["references"])
+                for result in results if result["references"]]
 
         return refs

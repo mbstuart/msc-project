@@ -1,0 +1,38 @@
+============================= test session starts =============================
+platform win32 -- Python 3.7.5, pytest-5.3.2, py-1.8.0, pluggy-0.13.1
+rootdir: C:\Users\matth\Documents\Project\msc-adv-computing-technologies-project-2019-20-files-mbstuart
+plugins: hypothesis-4.54.2, arraydiff-0.3, astropy-header-0.1.1, doctestplus-0.5.0, mock-3.3.1, openfiles-0.4.0, remotedata-0.3.2
+collected 12 items
+
+services\data_extractor\guardian_connector_test.py ..                    [ 16%]
+services\theme_extractor\preprocessing\article_preprocessor_test.py .... [ 50%]
+.                                                                        [ 58%]
+services\theme_extractor\preprocessing\transformation\html_stripper_test.py . [ 66%]
+                                                                         [ 66%]
+services\theme_extractor\preprocessing\transformation\pos_lemma_test.py . [ 75%]
+...                                                                      [100%]
+
+============================== warnings summary ===============================
+C:\Users\matth\Anaconda3\lib\site-packages\html5lib\_trie\_base.py:3
+  C:\Users\matth\Anaconda3\lib\site-packages\html5lib\_trie\_base.py:3: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3,and in 3.9 it will stop working
+    from collections import Mapping
+
+C:\Users\matth\Anaconda3\lib\site-packages\scipy\sparse\sparsetools.py:21
+  C:\Users\matth\Anaconda3\lib\site-packages\scipy\sparse\sparsetools.py:21: DeprecationWarning: `scipy.sparse.sparsetools` is deprecated!
+  scipy.sparse.sparsetools is a private module for scipy.sparse, and should not be used.
+    _deprecated()
+
+C:\Users\matth\Anaconda3\lib\site-packages\gensim\models\doc2vec.py:73
+  C:\Users\matth\Anaconda3\lib\site-packages\gensim\models\doc2vec.py:73: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3,and in 3.9 it will stop working
+    from collections import namedtuple, defaultdict, Iterable
+
+C:\Users\matth\Anaconda3\lib\site-packages\sqlalchemy\util\langhelpers.py:253
+  C:\Users\matth\Anaconda3\lib\site-packages\sqlalchemy\util\langhelpers.py:253: SADeprecationWarning: The 'postgres' dialect name has been renamed to 'postgresql'
+    loader = self.auto_fn(name)
+
+services/data_extractor/guardian_connector_test.py::test_guardian_connector
+  C:\Users\matth\Anaconda3\lib\site-packages\sqlalchemy\orm\relationships.py:3345: SAWarning: relationship 'ThemeArticleLink.article' will copy column ProcessedArticles.ArticleLoadId to column ThemeArticleMapping.ArticleLoadId, which conflicts with relationship(s): 'ThemeArticleLink.theme' (copies Themes.ArticleLoadId to ThemeArticleMapping.ArticleLoadId). Consider applying viewonly=True to read-only relationships, or provide a primaryjoin condition marking writable columns with the foreign() annotation.
+    for (pr, fr_) in other_props
+
+-- Docs: https://docs.pytest.org/en/latest/warnings.html
+======================= 12 passed, 5 warnings in 6.29s ========================
