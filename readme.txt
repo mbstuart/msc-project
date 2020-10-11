@@ -27,3 +27,8 @@
 
 #### Loading in new data
 1. Type in the following into the web browser 'http://localhost:5000/api/data-load'. This will trigger the data loading process. This should take around 4 hours. 
+
+### Acknowledgements
+The following file incorporates code from the github project 'theguardian-api-python' (https://github.com/prabhath6/theguardian-api-python): /services/data_extractor/guardian_connector.py. This was directly copied rather than imported as a library due to issues arising from attempting to install it in the normal way. 
+
+All other files have been written by the author (Matthew Burnett-Stuart)
